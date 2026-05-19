@@ -1,0 +1,359 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { authService } from "@/services/authService";
+import Navbar from "@/components/Navbar";
+import type { ProductCategory, UserRole } from "@/types";
+
+const schema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+    role: z.enum(["tourist", "coop_owner"]),
+    country: z.string().optional(),
+    cooperativeName: z.string().optional(),
+    cooperativeCity: z.string().optional(),
+    cooperativeCategory: z.string().optional(),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type FormData = z.infer<typeof schema>;
+
+const CITIES = [
+  "Agadir", "Taghazout", "Tiznit", "Taroudant",
+  "Tafraout", "Imsouane", "Taliouine", "Imouzzer",
+];
+
+const CATEGORIES = [
+  { value: "argan",   label: "Argan Oil" },
+  { value: "carpets", label: "Carpets & Textiles" },
+  { value: "saffron", label: "Saffron" },
+  { value: "pottery", label: "Berber Pottery" },
+  { value: "food",    label: "Food & Spices" },
+  { value: "leather", label: "Leather Goods" },
+  { value: "other",   label: "Other" },
+];
+
+export default function SignupPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const {
+  register,
+  handleSubmit,
+  control,
+  formState: { errors },
+} = useForm<FormData>({
+  resolver: zodResolver(schema),
+  defaultValues: { role: "tourist" },
+});
+
+const role = useWatch({ control, name: "role" });
+
+
+  const onSubmit = async (data: FormData) => {
+    setIsLoading(true);
+    try {
+      await authService.register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: data.role as UserRole,
+        country: data.country,
+        cooperativeName: data.cooperativeName,
+        cooperativeCity: data.cooperativeCity,
+        cooperativeCategory: data.cooperativeCategory as ProductCategory | undefined,
+      });
+      await login({ email: data.email, password: data.password });
+      toast.success("Welcome to The Souk!");
+      navigate("/dashboard");
+    } catch {
+      toast.error("Registration failed. Email may already be in use.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Navbar />
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#FFFCF8",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "100px 24px 60px",
+        }}
+      >
+        <div style={{ width: "100%", maxWidth: 520 }}>
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: 40 }}>
+            <Link
+              to="/"
+              style={{
+                fontFamily: '"Playfair Display", serif',
+                fontWeight: 800,
+                fontSize: 28,
+                color: "#E76F51",
+                textDecoration: "none",
+                letterSpacing: "-0.04em",
+                display: "block",
+                marginBottom: 16,
+              }}
+            >
+              ✦ The Souk
+            </Link>
+            <h1
+              style={{
+                fontFamily: '"Playfair Display", serif',
+                fontSize: 28,
+                fontWeight: 700,
+                color: "#1a1008",
+                marginBottom: 8,
+              }}
+            >
+              Join The Souk
+            </h1>
+            <p style={{ color: "#6b5a4e", fontSize: 15 }}>
+              Connect with Berber/Amazigh cooperatives in Souss-Massa
+            </p>
+          </div>
+
+          {/* Card */}
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 20,
+              border: "1px solid #f0e8e0",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+              padding: "40px 36px",
+            }}
+          >
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+
+              {/* Role selector */}
+              <div style={{ marginBottom: 28 }}>
+                <label style={labelStyle}>I am a…</label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {[
+                    { value: "tourist", label: "🧳 Tourist", sub: "Browse & buy products" },
+                    { value: "coop_owner", label: "🤝 Cooperative", sub: "Sell your crafts" },
+                  ].map((opt) => (
+                    <label
+                      key={opt.value}
+                      style={{
+                        display: "block",
+                        border: `2px solid ${role === opt.value ? "#E76F51" : "#f0e8e0"}`,
+                        borderRadius: 12,
+                        padding: "14px 16px",
+                        cursor: "pointer",
+                        background: role === opt.value ? "rgba(231,111,81,0.06)" : "#fff",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <input
+                        {...register("role")}
+                        type="radio"
+                        value={opt.value}
+                        style={{ display: "none" }}
+                      />
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "#1a1008", marginBottom: 2 }}>
+                        {opt.label}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#9a8a7a" }}>{opt.sub}</div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Name */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={labelStyle}>Full name</label>
+                <input
+                  {...register("name")}
+                  placeholder="Fatima Zahra"
+                  style={{ ...inputStyle, ...(errors.name ? errorBorderStyle : {}) }}
+                />
+                {errors.name && <p style={errorStyle}>{errors.name.message}</p>}
+              </div>
+
+              {/* Email */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={labelStyle}>Email address</label>
+                <input
+                  {...register("email")}
+                  type="email"
+                  placeholder="you@example.com"
+                  style={{ ...inputStyle, ...(errors.email ? errorBorderStyle : {}) }}
+                />
+                {errors.email && <p style={errorStyle}>{errors.email.message}</p>}
+              </div>
+
+              {/* Country (tourist only) */}
+              {role === "tourist" && (
+                <div style={{ marginBottom: 20 }}>
+                  <label style={labelStyle}>Country</label>
+                  <input
+                    {...register("country")}
+                    placeholder="e.g. France"
+                    style={inputStyle}
+                  />
+                </div>
+              )}
+
+              {/* Password */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={labelStyle}>Password</label>
+                <input
+                  {...register("password")}
+                  type="password"
+                  placeholder="Min. 8 characters"
+                  style={{ ...inputStyle, ...(errors.password ? errorBorderStyle : {}) }}
+                />
+                {errors.password && <p style={errorStyle}>{errors.password.message}</p>}
+              </div>
+
+              {/* Confirm password */}
+              <div style={{ marginBottom: 28 }}>
+                <label style={labelStyle}>Confirm password</label>
+                <input
+                  {...register("confirmPassword")}
+                  type="password"
+                  placeholder="Repeat your password"
+                  style={{ ...inputStyle, ...(errors.confirmPassword ? errorBorderStyle : {}) }}
+                />
+                {errors.confirmPassword && (
+                  <p style={errorStyle}>{errors.confirmPassword.message}</p>
+                )}
+              </div>
+
+              {/* Cooperative extra fields */}
+              {role === "coop_owner" && (
+                <div
+                  style={{
+                    background: "rgba(42,157,143,0.06)",
+                    border: "1px solid rgba(42,157,143,0.2)",
+                    borderRadius: 12,
+                    padding: "20px",
+                    marginBottom: 28,
+                  }}
+                >
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "#2A9D8F", marginBottom: 16, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    Cooperative details
+                  </p>
+
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={labelStyle}>Cooperative name</label>
+                    <input
+                      {...register("cooperativeName")}
+                      placeholder="e.g. Coopérative Tifaout"
+                      style={{ ...inputStyle, ...(errors.cooperativeName ? errorBorderStyle : {}) }}
+                    />
+                    {errors.cooperativeName && (
+                      <p style={errorStyle}>{errors.cooperativeName.message}</p>
+                    )}
+                  </div>
+
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={labelStyle}>City</label>
+                    <select {...register("cooperativeCity")} style={inputStyle}>
+                      <option value="">Select a city</option>
+                      {CITIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={labelStyle}>Category</label>
+                    <select {...register("cooperativeCategory")} style={inputStyle}>
+                      <option value="">Select a category</option>
+                      {CATEGORIES.map((c) => (
+                        <option key={c.value} value={c.value}>{c.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                style={{
+                  width: "100%",
+                  background: isLoading ? "#c9896e" : "#E76F51",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 50,
+                  padding: "14px 28px",
+                  fontSize: 16,
+                  fontWeight: 600,
+                  cursor: isLoading ? "not-allowed" : "pointer",
+                  transition: "background 0.2s",
+                }}
+              >
+                {isLoading ? "Creating account…" : "Create account"}
+              </button>
+            </form>
+          </div>
+
+          {/* Footer link */}
+          <p style={{ textAlign: "center", marginTop: 24, color: "#6b5a4e", fontSize: 14 }}>
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              style={{ color: "#E76F51", fontWeight: 600, textDecoration: "none" }}
+            >
+              Log in
+            </Link>
+          </p>
+        </div>
+      </div>
+    </>
+  );
+}
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 13,
+  fontWeight: 600,
+  color: "#1a1008",
+  marginBottom: 8,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  borderRadius: 12,
+  border: "1px solid #f0e8e0",
+  padding: "12px 16px",
+  fontSize: 15,
+  color: "#1a1008",
+  background: "#fff",
+  outline: "none",
+  boxSizing: "border-box",
+};
+
+const errorBorderStyle: React.CSSProperties = {
+  border: "1px solid #e74c3c",
+};
+
+const errorStyle: React.CSSProperties = {
+  color: "#e74c3c",
+  fontSize: 13,
+  marginTop: 6,
+};

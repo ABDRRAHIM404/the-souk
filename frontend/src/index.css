@@ -1,0 +1,209 @@
+@import "tailwindcss";
+
+/* ── Google Fonts ── */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&display=swap");
+
+/* ── Design Tokens ── */
+:root {
+  --color-primary:    #E76F51;
+  --color-secondary:  #2A9D8F;
+  --color-accent:     #E9C46A;
+  --color-background: #FFFCF8;
+  --color-dark:       #1a1008;
+  --color-body:       #6b5a4e;
+  --color-muted:      #9a8a7a;
+  --color-card:       #ffffff;
+  --color-border:     #f0e8e0;
+
+  --radius-card:  20px;
+  --radius-btn:   50px;
+  --radius-input: 12px;
+
+  --shadow-card:       0 4px 24px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 12px 40px rgba(0, 0, 0, 0.13);
+}
+
+/* ── Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-body);
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--color-dark);
+}
+
+/* ── Utility Classes ── */
+
+/* Cards */
+.card {
+  background: var(--color-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-btn);
+  padding: 12px 28px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: #d4603f;
+  transform: translateY(-1px);
+}
+.btn-secondary {
+  background: var(--color-secondary);
+  color: #fff;
+}
+.btn-secondary:hover {
+  background: #238276;
+  transform: translateY(-1px);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+.btn-outline:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--color-border);
+  padding: 12px 16px;
+  font-size: 15px;
+  color: var(--color-dark);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(231, 111, 81, 0.12);
+}
+.input::placeholder {
+  color: var(--color-muted);
+}
+.input-error {
+  border-color: #e74c3c;
+}
+
+/* Labels / Tags */
+.tag {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.badge-green {
+  background: rgba(42, 157, 143, 0.12);
+  color: var(--color-secondary);
+}
+.badge-gold {
+  background: rgba(233, 196, 106, 0.2);
+  color: #a07c00;
+}
+
+/* Fade-in animation (used by FadeSection) */
+.fade-hidden {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.fade-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Navbar glass */
+.navbar-glass {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 252, 248, 0.9);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Price display */
+.price {
+  font-family: "Playfair Display", serif;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+/* Section spacing */
+.section {
+  padding: 80px 0;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Grid helpers */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-background); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
