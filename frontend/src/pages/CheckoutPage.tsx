@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
@@ -26,6 +27,25 @@ type CheckoutForm = z.infer<typeof checkoutSchema>;
 
 const inputClass =
   "w-full px-4 py-3 rounded-xl border border-[#f0e8e0] bg-white text-[#1a1008] text-sm placeholder:text-[#c4b8ae] focus:outline-none focus:ring-2 focus:ring-[#E76F51]/30 focus:border-[#E76F51] transition-all";
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof error.response === "object" &&
+    error.response !== null &&
+    "data" in error.response &&
+    typeof error.response.data === "object" &&
+    error.response.data !== null &&
+    "message" in error.response.data &&
+    typeof error.response.data.message === "string"
+  ) {
+    return error.response.data.message;
+  }
+
+  return fallback;
+}
 
 function Field({
   label,
@@ -90,8 +110,8 @@ export default function CheckoutPage() {
       clearCart();
       toast.success("Order placed! The cooperative will confirm shortly.");
       navigate("/dashboard");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Could not place order");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Could not place order"));
     } finally {
       setPlacing(false);
     }

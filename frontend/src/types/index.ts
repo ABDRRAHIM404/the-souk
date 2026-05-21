@@ -135,7 +135,54 @@ export interface UpdateCoopPayload {
   name?: string;
   description?: string;
   location?: { city: string; region: string };
+  city?: string;
+  region?: string;
   category?: ProductCategory;
+  impactStatement?: string;
+  artisanCount?: number;
+  foundedYear?: number;
+}
+
+export interface CartItem {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+  cooperativeId: string;
+  cooperativeName: string;
+}
+
+export interface OrderItem {
+  product: Product | string;
+  quantity: number;
+  priceAtPurchase: number;
+}
+
+export interface ShippingAddress {
+  fullName: string;
+  address: string;
+  city: string;
+  country: string;
+  phone: string;
+}
+
+export interface Order {
+  _id: string;
+  tourist: User | string;
+  cooperative: Cooperative | string;
+  items: OrderItem[];
+  shippingAddress: ShippingAddress;
+  total: number;
+  paymentMethod: "cash_on_delivery";
+  status: "pending" | "confirmed" | "delivered" | "cancelled";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateOrderPayload {
+  items: { productId: string; quantity: number }[];
+  shippingAddress: ShippingAddress;
 }
 
 // ── API Response wrappers ──────────────────────────────────────────────────
@@ -163,18 +210,6 @@ export interface ProductFilters {
   page?: number;
   limit?: number;
   cooperative?: string; // filter by cooperative ID
-}
-
-export interface UpdateCoopPayload {
-  name?: string;
-  description?: string;
-  location?: { city: string; region: string };
-  city?: string;
-  region?: string;
-  category?: ProductCategory;
-  impactStatement?: string;
-  artisanCount?: number;
-  foundedYear?: number;
 }
 
 // ── Auth context shape ─────────────────────────────────────────────────────
