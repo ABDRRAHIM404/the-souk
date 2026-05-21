@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/context/AuthProvider";
@@ -12,8 +11,10 @@ import SignupPage        from "@/pages/SignupPage";
 import MarketplacePage   from "@/pages/MarketplacePage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
 import CoopProfilePage   from "@/pages/CoopProfilePage";
-import TouristDashboard  from "@/pages/dashboard/TouristDashboard";
-import CoopDashboard     from "@/pages/dashboard/CoopDashboard";
+import TouristDashboard  from "@/pages/TouristDashboard";
+import CoopDashboard     from "@/pages/CoopDashboard";
+import CartProvider from "@/context/CartProvider";
+import CheckoutPage from "@/pages/CheckoutPage";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -68,6 +69,7 @@ function AppRoutes() {
       <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
       <Route path="/dashboard/tourist" element={<ProtectedRoute><TouristDashboard /></ProtectedRoute>} />
       <Route path="/dashboard/coop"    element={<CoopRoute><CoopDashboard /></CoopRoute>} />
+      <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -78,8 +80,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
-        <Toaster
+        <CartProvider>
+          <AppRoutes />
+          <Toaster
           position="top-right"
           toastOptions={{
             style: {
@@ -92,6 +95,7 @@ export default function App() {
             error:   { iconTheme: { primary: "#E76F51", secondary: "#fff" } },
           }}
         />
+        </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   );

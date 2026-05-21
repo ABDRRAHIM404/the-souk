@@ -9,6 +9,7 @@ export interface IUser extends Document {
   avatar: string;
   country: string;
   wishlist: mongoose.Types.ObjectId[];
+  cooperativeId?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(password: string): Promise<boolean>;
@@ -23,6 +24,7 @@ const UserSchema = new Schema<IUser>(
     avatar: { type: String, default: "" },
     country: { type: String, default: "" },
     wishlist: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+    cooperativeId: { type: Schema.Types.ObjectId, ref: "Cooperative", default: null },
   },
   { timestamps: true }
 );

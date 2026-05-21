@@ -4,9 +4,11 @@ import type { Cooperative, Product } from "@/types";
 import { coopService } from "@/services/coopService";
 import { productService } from "@/services/productService";
 import { useAuth } from "@/hooks/useAuth";
+import { useWishlist } from "@/hooks/useWishlist";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeSection from "@/components/FadeSection";
+import ProductCard from "@/components/ProductCard";
 import toast from "react-hot-toast";
 
 // ─── Star Rating ──────────────────────────────────────────────────────────────
@@ -27,56 +29,6 @@ function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
   );
 }
 
-// ─── Product Card ─────────────────────────────────────────────────────────────
-function ProductCard({ product }: { product: Product }) {
-  return (
-    <Link
-      to={`/marketplace/${product._id}`}
-      className="group block bg-white rounded-[20px] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_40px_rgba(231,111,81,0.15)] transition-all duration-300 hover:-translate-y-1"
-    >
-      <div className="relative aspect-square overflow-hidden bg-[#faf6f2]">
-        {product.images?.[0] ? (
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="opacity-20">
-              <rect x="3" y="3" width="18" height="18" rx="3" stroke="#6b5a4e" strokeWidth="1.5" />
-              <circle cx="8.5" cy="8.5" r="1.5" fill="#6b5a4e" />
-              <path d="M21 15l-5-5L5 21" stroke="#6b5a4e" strokeWidth="1.5" />
-            </svg>
-          </div>
-        )}
-        {product.isFairTrade && (
-          <div className="absolute top-3 left-3 bg-[#2A9D8F] text-white text-[10px] font-bold px-2 py-1 rounded-full tracking-wide uppercase">
-            Fair Trade
-          </div>
-        )}
-      </div>
-      <div className="p-4">
-        <p className="text-xs text-[#9a8a7a] uppercase tracking-widest mb-1">{product.category}</p>
-        <h3 className="font-['Playfair_Display'] font-bold text-[#1a1008] text-base leading-snug mb-2 group-hover:text-[#E76F51] transition-colors line-clamp-2">
-          {product.name}
-        </h3>
-        <div className="flex items-center justify-between">
-          <span className="text-[#E76F51] font-bold text-lg">
-            {product.price.currency} {product.price.amount.toFixed(2)}
-          </span>
-          {product.rating && (
-            <div className="flex items-center gap-1">
-              <StarRating rating={product.rating} size={12} />
-              <span className="text-xs text-[#9a8a7a]">({product.reviewCount ?? 0})</span>
-            </div>
-          )}
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 // ─── Review Card ──────────────────────────────────────────────────────────────
 function ReviewCard({
   author,
@@ -93,7 +45,7 @@ function ReviewCard({
     <div className="bg-white rounded-[20px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E76F51] to-[#E9C46A] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#E76F51] to-[#E9C46A] flex items-center justify-center text-white font-bold text-sm shrink-0">
             {author.charAt(0).toUpperCase()}
           </div>
           <div>
@@ -125,6 +77,7 @@ function StatPill({ icon, label, value }: { icon: React.ReactNode; label: string
 export default function CoopProfilePage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { wishlistSet } = useWishlist();
 
   const [coop, setCoop] = useState<Cooperative | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -277,7 +230,7 @@ export default function CoopProfilePage() {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#E76F51]/20 via-[#E9C46A]/10 to-[#2A9D8F]/20 flex items-center justify-center">
+          <div className="w-full h-full bg-linear-to-br from-[#E76F51]/20 via-[#E9C46A]/10 to-[#2A9D8F]/20 flex items-center justify-center">
             {/* Decorative Amazigh-inspired pattern */}
             <svg viewBox="0 0 600 300" className="absolute inset-0 w-full h-full opacity-10" preserveAspectRatio="xMidYMid slice">
               {Array.from({ length: 8 }).map((_, i) =>
@@ -295,7 +248,7 @@ export default function CoopProfilePage() {
           </div>
         )}
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1008]/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-[#1a1008]/60 via-transparent to-transparent" />
       </div>
 
       {/* ── Profile Header ───────────────────────────────────────────────────── */}
@@ -303,7 +256,7 @@ export default function CoopProfilePage() {
         <div className="relative -mt-16 md:-mt-20 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-end gap-5">
             {/* Avatar */}
-            <div className="w-28 h-28 md:w-36 md:h-36 rounded-[20px] border-4 border-white shadow-[0_8px_32px_rgba(0,0,0,0.12)] overflow-hidden bg-gradient-to-br from-[#E76F51] to-[#E9C46A] flex items-center justify-center flex-shrink-0">
+            <div className="w-28 h-28 md:w-36 md:h-36 rounded-[20px] border-4 border-white shadow-[0_8px_32px_rgba(0,0,0,0.12)] overflow-hidden bg-linear-to-br from-[#E76F51] to-[#E9C46A] flex items-center justify-center shrink-0">
               {coop.logo ? (
                 <img src={coop.logo} alt={coop.name} className="w-full h-full object-cover" />
               ) : (
@@ -353,7 +306,7 @@ export default function CoopProfilePage() {
                   <button
                     onClick={handleFollow}
                     disabled={followLoading}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm transition-all duration-200 flex-shrink-0 ${
+                    className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm transition-all duration-200 shrink-0 ${
                       isFollowing
                         ? "bg-[#f0e8e0] text-[#6b5a4e] hover:bg-[#e8ddd5]"
                         : "bg-[#E76F51] text-white hover:bg-[#d46043] shadow-[0_4px_16px_rgba(231,111,81,0.3)]"
@@ -378,7 +331,7 @@ export default function CoopProfilePage() {
             <StatPill
               icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" stroke="currentColor" strokeWidth="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" stroke="currentColor" strokeWidth="2"/></svg>}
               label="Products"
-              value={products.length || coop.productCount ?? 0}
+              value={(products.length || coop.productCount) ?? 0}
             />
             <StatPill
               icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" strokeWidth="2"/><circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" strokeWidth="2"/></svg>}
@@ -456,7 +409,11 @@ export default function CoopProfilePage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-16">
                 {products.map((product) => (
-                  <ProductCard key={product._id} product={product} />
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    initialWishlisted={wishlistSet.has(product._id)}
+                  />
                 ))}
               </div>
             )}
@@ -480,7 +437,7 @@ export default function CoopProfilePage() {
 
                 {/* Impact */}
                 {(coop.impactStatement || coop.artisanCount) && (
-                  <div className="mt-6 bg-gradient-to-br from-[#2A9D8F]/5 to-[#E9C46A]/10 rounded-[20px] p-6 border border-[#2A9D8F]/10">
+                  <div className="mt-6 bg-linear-to-br from-[#2A9D8F]/5 to-[#E9C46A]/10 rounded-[20px] p-6 border border-[#2A9D8F]/10">
                     <h3 className="font-['Playfair_Display'] font-bold text-lg text-[#1a1008] mb-2 flex items-center gap-2">
                       <span>🌿</span> Fair Trade Impact
                     </h3>
@@ -511,7 +468,7 @@ export default function CoopProfilePage() {
                       <button
                         key={i}
                         onClick={() => setGalleryIndex(i)}
-                        className="aspect-square rounded-[12px] overflow-hidden hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#E76F51] focus:ring-offset-2"
+                        className="aspect-square rounded-xl overflow-hidden hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#E76F51] focus:ring-offset-2"
                       >
                         <img src={photo} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />
                       </button>
@@ -544,7 +501,7 @@ export default function CoopProfilePage() {
                       <StarRating rating={avgRating} size={20} />
                       <p className="text-xs text-[#9a8a7a] mt-1">{reviews.length} reviews</p>
                     </div>
-                    <div className="space-y-1 min-w-[160px]">
+                    <div className="space-y-1 min-w-40">
                       {[5, 4, 3, 2, 1].map((star) => {
                         const count = reviews.filter((r) => Math.round(r.rating) === star).length;
                         const pct = reviews.length ? (count / reviews.length) * 100 : 0;
@@ -569,7 +526,7 @@ export default function CoopProfilePage() {
                   {reviews.map((review, i) => (
                     <ReviewCard
                       key={i}
-                      author={review.userName ?? "Anonymous"}
+                      author={typeof review.reviewer === "object" ? (review.reviewer as { name: string }).name : "Anonymous"}
                       rating={review.rating}
                       comment={review.comment}
                       date={review.createdAt ?? new Date().toISOString()}
@@ -607,7 +564,7 @@ export default function CoopProfilePage() {
           <img
             src={photos[galleryIndex]}
             alt={`Gallery ${galleryIndex + 1}`}
-            className="max-h-[85vh] max-w-[90vw] rounded-[16px] object-contain"
+            className="max-h-[85vh] max-w-[90vw] rounded-2xl object-contain"
             onClick={(e) => e.stopPropagation()}
           />
           {galleryIndex < photos.length - 1 && (

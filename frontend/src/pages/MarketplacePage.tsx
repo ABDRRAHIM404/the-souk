@@ -1,8 +1,10 @@
-import { useEffect, useState} from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeSection from "@/components/FadeSection";
+import ProductCard from "@/components/ProductCard";
+import { useWishlist } from "@/hooks/useWishlist";
 import { productService } from "@/services/productService";
 import type { Product, ProductFilters, ProductCategory } from "@/types";
 import toast from "react-hot-toast";
@@ -31,134 +33,6 @@ const SORTS = [
   { value: "price_desc", label: "Price: High → Low" },
 ];
 
-// ── Product Card ───────────────────────────────────────────────────────────
-
-function ProductCard({ product }: { product: Product }) {
-  const coop = typeof product.cooperative === "object" ? product.cooperative : null;
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <Link to={`/products/${product._id}`} style={{ textDecoration: "none" }}>
-      <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          background: "#fff",
-          borderRadius: 20,
-          border: "1px solid #f0e8e0",
-          overflow: "hidden",
-          boxShadow: hovered
-            ? "0 12px 40px rgba(0,0,0,0.13)"
-            : "0 4px 24px rgba(0,0,0,0.06)",
-          transform: hovered ? "translateY(-4px)" : "translateY(0)",
-          transition: "all 0.25s ease",
-          cursor: "pointer",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        {/* Image */}
-        <div
-          style={{
-            height: 220,
-            background: product.images[0]
-              ? `url(http://localhost:5000${product.images[0]}) center/cover no-repeat`
-              : "linear-gradient(135deg, #f0e8e0, #E9C46A22)",
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            padding: 12,
-          }}
-        >
-          {product.fairTradeCertified && (
-            <span
-              style={{
-                background: "rgba(42,157,143,0.92)",
-                color: "#fff",
-                fontSize: 11,
-                fontWeight: 600,
-                padding: "4px 10px",
-                borderRadius: 50,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-              }}
-            >
-              ✓ Fair Trade
-            </span>
-          )}
-          {!product.isAvailable && (
-            <span
-              style={{
-                background: "rgba(0,0,0,0.6)",
-                color: "#fff",
-                fontSize: 11,
-                fontWeight: 600,
-                padding: "4px 10px",
-                borderRadius: 50,
-                marginLeft: "auto",
-              }}
-            >
-              Out of stock
-            </span>
-          )}
-        </div>
-
-        {/* Content */}
-        <div style={{ padding: "16px 20px 20px", flex: 1, display: "flex", flexDirection: "column" }}>
-          <p style={{
-            fontSize: 11,
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            color: "#9a8a7a",
-            marginBottom: 6,
-          }}>
-            {product.category} · {product.origin}
-          </p>
-          <h3 style={{
-            fontFamily: '"Playfair Display", serif',
-            fontSize: 17,
-            fontWeight: 700,
-            color: "#1a1008",
-            marginBottom: 6,
-            lineHeight: 1.3,
-            flex: 1,
-          }}>
-            {product.name}
-          </h3>
-          {coop && (
-            <p style={{ fontSize: 13, color: "#9a8a7a", marginBottom: 12 }}>
-              by {coop.name}
-            </p>
-          )}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
-            <span style={{
-              fontFamily: '"Playfair Display", serif',
-              fontWeight: 800,
-              fontSize: 20,
-              color: "#E76F51",
-            }}>
-              {product.price} MAD
-            </span>
-            <span style={{
-              fontSize: 12,
-              background: "rgba(231,111,81,0.1)",
-              color: "#E76F51",
-              padding: "4px 10px",
-              borderRadius: 50,
-              fontWeight: 600,
-            }}>
-              Fixed price
-            </span>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 // ── Main Page ──────────────────────────────────────────────────────────────
 
 export default function MarketplacePage() {
@@ -167,6 +41,9 @@ export default function MarketplacePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
+  const [layout, setLayout] = useState<"grid" | "list">("grid");
+
+  const { wishlistSet } = useWishlist();
 
   const category = (searchParams.get("category") ?? "") as ProductCategory | "";
   const region   = searchParams.get("region") ?? "";
@@ -343,6 +220,55 @@ export default function MarketplacePage() {
                   ✕ Clear filters
                 </button>
               )}
+
+              {/* Layout toggle */}
+              <div
+                style={{
+                  marginLeft: "auto",
+                  display: "flex",
+                  gap: 4,
+                  background: "#f5ede6",
+                  borderRadius: 10,
+                  padding: 4,
+                }}
+              >
+                {(["grid", "list"] as const).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setLayout(v)}
+                    aria-label={`${v} view`}
+                    style={{
+                      border: "none",
+                      borderRadius: 7,
+                      padding: "7px 10px",
+                      cursor: "pointer",
+                      background: layout === v ? "#fff" : "transparent",
+                      boxShadow: layout === v ? "0 1px 6px rgba(0,0,0,0.08)" : "none",
+                      color: layout === v ? "#E76F51" : "#9a8a7a",
+                      transition: "all 0.15s ease",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    {v === "grid" ? (
+                      // 2×2 grid icon
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                        <rect x="1" y="1" width="6" height="6" rx="1.5" />
+                        <rect x="9" y="1" width="6" height="6" rx="1.5" />
+                        <rect x="1" y="9" width="6" height="6" rx="1.5" />
+                        <rect x="9" y="9" width="6" height="6" rx="1.5" />
+                      </svg>
+                    ) : (
+                      // List icon
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                        <rect x="1" y="2" width="14" height="3" rx="1.5" />
+                        <rect x="1" y="6.5" width="14" height="3" rx="1.5" />
+                        <rect x="1" y="11" width="14" height="3" rx="1.5" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </FadeSection>
@@ -387,14 +313,30 @@ export default function MarketplacePage() {
           </FadeSection>
         ) : (
           <FadeSection>
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: 24,
-              marginBottom: 48,
-            }}>
+            <div
+              style={
+                layout === "grid"
+                  ? {
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                      gap: 24,
+                      marginBottom: 48,
+                    }
+                  : {
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 16,
+                      marginBottom: 48,
+                    }
+              }
+            >
               {products.map((p) => (
-                <ProductCard key={p._id} product={p} />
+                <ProductCard
+                  key={p._id}
+                  product={p}
+                  layout={layout}
+                  initialWishlisted={wishlistSet.has(p._id)}
+                />
               ))}
             </div>
 

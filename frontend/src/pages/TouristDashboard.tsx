@@ -25,9 +25,13 @@ function formatPrice(price: unknown): string {
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Review {
   _id: string;
-  productId: string;
-  productName: string;
-  productImage?: string;
+  product: {
+    _id: string;
+    name: string;
+    images?: string[];
+    price: number;
+    category: string;
+  };
   rating: number;
   comment: string;
   createdAt: string;
@@ -122,10 +126,10 @@ function WishlistCard({ product, onRemove }: { product: Product; onRemove: (id: 
 function MyReviewCard({ review }: { review: Review }) {
   return (
     <div className="bg-white rounded-[20px] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.06)] flex gap-4">
-      <Link to={`/marketplace/${review.productId}`} className="flex-shrink-0">
-        <div className="w-16 h-16 rounded-[12px] overflow-hidden bg-[#faf6f2]">
-          {review.productImage ? (
-            <img src={review.productImage} alt={review.productName} className="w-full h-full object-cover" />
+      <Link to={`/marketplace/${review.product._id}`} className="shrink-0">
+        <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#faf6f2]">
+          {review.product.images?.[0] ? (
+            <img src={review.product.images[0]} alt={review.product.name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="opacity-20">
@@ -136,9 +140,9 @@ function MyReviewCard({ review }: { review: Review }) {
         </div>
       </Link>
       <div className="flex-1 min-w-0">
-        <Link to={`/marketplace/${review.productId}`}>
+        <Link to={`/marketplace/${review.product._id}`}>
           <h4 className="font-semibold text-[#1a1008] text-sm hover:text-[#E76F51] transition-colors truncate">
-            {review.productName}
+            {review.product.name}
           </h4>
         </Link>
         <div className="flex items-center gap-2 mt-1 mb-2">
@@ -173,7 +177,7 @@ function Field({
 }
 
 const inputClass =
-  "w-full px-4 py-3 rounded-[12px] border border-[#f0e8e0] bg-white text-[#1a1008] text-sm placeholder:text-[#c4b8ae] focus:outline-none focus:ring-2 focus:ring-[#E76F51]/30 focus:border-[#E76F51] transition-all";
+  "w-full px-4 py-3 rounded-xl border border-[#f0e8e0] bg-white text-[#1a1008] text-sm placeholder:text-[#c4b8ae] focus:outline-none focus:ring-2 focus:ring-[#E76F51]/30 focus:border-[#E76F51] transition-all";
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function TouristDashboard() {
@@ -243,16 +247,10 @@ export default function TouristDashboard() {
     async function load() {
       try {
         setLoadingReviews(true);
-        // Assumes backend returns reviews written by the authenticated user
-        const res = await fetch("/api/users/me/reviews", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("accessToken") ?? ""}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setMyReviews(data.data ?? []);
-        }
+        const { data } = await api.get<Review[]>("/users/me/reviews");
+        setMyReviews(data ?? []);
       } catch {
-        // silent — endpoint may not be implemented yet
+        // silent
       } finally {
         setLoadingReviews(false);
       }
@@ -260,10 +258,15 @@ export default function TouristDashboard() {
     load();
   }, [user]);
 
-  function handleRemoveFromWishlist(productId: string) {
-    setWishlist((prev) => prev.filter((p) => p._id !== productId));
-    toast.success("Removed from wishlist");
-    // TODO: call PATCH /api/users/me/wishlist/remove when endpoint is ready
+  async function handleRemoveFromWishlist(productId: string) {
+    setWishlist((prev) => prev.filter((p) => p._id !== productId)); // optimistic
+    try {
+      await api.delete(`/users/wishlist/${productId}`);
+      toast.success("Removed from wishlist");
+    } catch {
+      toast.error("Could not remove from wishlist");
+      await refreshAuth(); // rollback — re-sync user + wishlist from server
+    }
   }
 
   async function onSettingsSubmit(data: SettingsForm) {
@@ -322,10 +325,10 @@ export default function TouristDashboard() {
       <Navbar />
 
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#E76F51]/8 via-[#FFFCF8] to-[#2A9D8F]/5 border-b border-[#f0e8e0]">
+      <div className="bg-linear-to-br from-[#E76F51]/8 via-[#FFFCF8] to-[#2A9D8F]/5 border-b border-[#f0e8e0]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#E76F51] to-[#E9C46A] flex items-center justify-center text-white font-['Playfair_Display'] font-bold text-2xl flex-shrink-0">
+            <div className="w-16 h-16 rounded-full bg-linear-to-br from-[#E76F51] to-[#E9C46A] flex items-center justify-center text-white font-['Playfair_Display'] font-bold text-2xl shrink-0">
               {user?.name?.charAt(0).toUpperCase() ?? "?"}
             </div>
             <div>
@@ -413,7 +416,7 @@ export default function TouristDashboard() {
               <div className="space-y-4">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="bg-white rounded-[20px] p-5 animate-pulse flex gap-4">
-                    <div className="w-16 h-16 rounded-[12px] bg-[#f0e8e0] flex-shrink-0" />
+                    <div className="w-16 h-16 rounded-xl bg-[#f0e8e0] shrink-0" />
                     <div className="flex-1 space-y-2">
                       <div className="h-4 bg-[#f0e8e0] rounded w-1/3" />
                       <div className="h-3 bg-[#f0e8e0] rounded w-1/4" />

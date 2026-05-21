@@ -7,6 +7,7 @@ import { productService } from "@/services/productService";
 import { coopService } from "@/services/coopService";
 import type { Product, Cooperative, Review } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
+import { useWishlist } from "@/hooks/useWishlist";
 import api from "@/services/api";
 import toast from "react-hot-toast";
 
@@ -227,6 +228,7 @@ function RelatedCard({ product }: { product: Product }) {
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { wishlistSet } = useWishlist();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [coop, setCoop] = useState<Cooperative | null>(null);
@@ -240,8 +242,34 @@ export default function ProductDetailPage() {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Wishlist
-  const [wishlisted, setWishlisted] = useState(false);
+  // Wishlist — derive initial value from wishlistSet, then track local overrides
+  const [wishlistOverride, setWishlistOverride] = useState<boolean | null>(null);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const wishlisted = wishlistOverride ?? (id ? wishlistSet.has(id) : false);
+
+  const toggleWishlist = async () => {
+    if (!user) { toast.error("Log in to save to wishlist"); return; }
+    if (user.role !== "tourist") return;
+    if (!id || wishlistLoading) return;
+
+    const next = !wishlisted;
+    setWishlistOverride(next);
+    setWishlistLoading(true);
+    try {
+      if (next) {
+        await productService.addToWishlist(id);
+        toast.success("Added to wishlist");
+      } else {
+        await productService.removeFromWishlist(id);
+        toast.success("Removed from wishlist");
+      }
+    } catch {
+      setWishlistOverride(!next);
+      toast.error("Couldn't update wishlist — please try again");
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -250,7 +278,7 @@ export default function ProductDetailPage() {
     const run = async () => {
       setIsLoading(true);
       try {
-        const p = await productService.getById(id);
+        const p = await productService.getById(id!);
         if (controller.signal.aborted) return;
         setProduct(p);
         setActiveImage(0);
@@ -295,12 +323,6 @@ export default function ProductDetailPage() {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const toggleWishlist = async () => {
-    if (!user) { toast.error("Log in to save to wishlist"); return; }
-    setWishlisted((w) => !w);
-    toast.success(wishlisted ? "Removed from wishlist" : "Added to wishlist");
   };
 
   // ── Loading state ──────────────────────────────────────────────────────
@@ -696,6 +718,47 @@ export default function ProductDetailPage() {
               >
                 ✉ Contact Cooperative
               </a>
+
+              {/* Wishlist button — tourists only */}
+              {(!user || user.role === "tourist") && (
+                <button
+                  onClick={toggleWishlist}
+                  disabled={wishlistLoading}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    width: "100%",
+                    background: wishlisted ? "rgba(231,111,81,0.08)" : "#fff",
+                    color: wishlisted ? "#E76F51" : "#6b5a4e",
+                    border: `2px solid ${wishlisted ? "#E76F51" : "#f0e8e0"}`,
+                    borderRadius: 50,
+                    padding: "13px 28px",
+                    fontWeight: 700,
+                    fontSize: 15,
+                    cursor: wishlistLoading ? "wait" : "pointer",
+                    marginBottom: 12,
+                    boxSizing: "border-box",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    fill={wishlisted ? "#E76F51" : "none"}
+                    stroke={wishlisted ? "#E76F51" : "#6b5a4e"}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ transition: "fill 0.2s ease, stroke 0.2s ease", flexShrink: 0 }}
+                  >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                  {wishlisted ? "Saved to Wishlist" : "Save to Wishlist"}
+                </button>
+              )}
 
               {/* Coop info card */}
               <Link

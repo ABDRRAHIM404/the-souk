@@ -2,12 +2,16 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import toast from "react-hot-toast";
+import { useCart } from "@/hooks/useCart";
+import CartDrawer from "@/components/CartDrawer";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
   const location = useLocation();
+  const { totalItems } = useCart();  
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -31,6 +35,7 @@ export default function Navbar() {
 
   return (
     <nav
+      
       style={{
         position: "fixed",
         top: 0,
@@ -151,6 +156,48 @@ export default function Navbar() {
               </Link>
             </>
           )}
+
+          {/* Cart icon */}
+          <button
+            onClick={() => setCartOpen(true)}
+            style={{
+              position: "relative",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: 8,
+              color: "#6b5a4e",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "50%",
+              transition: "background 0.2s",
+            }}
+            aria-label="Open cart"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            {totalItems > 0 && (
+              <span style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                width: 18,
+                height: 18,
+                background: "#E76F51",
+                color: "#fff",
+                fontSize: 10,
+                fontWeight: 700,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+                {totalItems > 9 ? "9+" : totalItems}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Mobile hamburger */}
@@ -223,6 +270,8 @@ export default function Navbar() {
           .mobile-menu-btn { display: block !important; }
         }
       `}</style>
+
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </nav>
   );
 }

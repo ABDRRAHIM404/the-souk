@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import FadeSection from "@/components/FadeSection";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -17,15 +18,15 @@ const CATEGORIES = ["weaving", "pottery", "argan", "jewellery", "leather", "wood
 const CURRENCIES = ["MAD", "EUR", "USD", "GBP"];
 
 // ─── Product form schema ──────────────────────────────────────────────────────
-// Note: we keep a `currency` field in the form for display, but Product.price is
-// stored as a plain number (MAD). We convert on submit.
+// price.amount uses valueAsNumber on the input so the field arrives as a number.
+// category stays string in the schema; we cast to ProductCategory on submit.
 const productSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   description: z.string().min(20, "Please write at least 20 characters"),
-  category: z.string().min(1, "Select a category") as z.ZodType<ProductCategory>,
-  priceAmount: z.coerce.number().positive("Price must be positive"),
+  category: z.string().min(1, "Select a category"),
+  priceAmount: z.number({ message: "Enter a valid price" }).positive("Price must be positive"),
   priceCurrency: z.string().min(1, "Select a currency"),
-  stock: z.coerce.number().int().min(0, "Stock cannot be negative"),
+  stock: z.number({ message: "Enter a valid stock number" }).int().min(0, "Stock cannot be negative"),
   fairTradeCertified: z.boolean(),
   materials: z.string().optional(),
   origin: z.string().optional(),
@@ -40,8 +41,8 @@ const coopSettingsSchema = z.object({
   cooperativeCity: z.string().optional(),
   description: z.string().optional(),
   impactStatement: z.string().optional(),
-  artisanCount: z.coerce.number().int().min(0).optional(),
-  foundedYear: z.coerce.number().int().min(1900).max(new Date().getFullYear()).optional(),
+  artisanCount: z.number({ message: "Enter a number" }).int().min(0).optional(),
+  foundedYear: z.number({ message: "Enter a year" }).int().min(1900).max(new Date().getFullYear()).optional(),
 });
 
 type CoopSettingsForm = z.infer<typeof coopSettingsSchema>;
@@ -91,10 +92,10 @@ function Field({ label, error, children, hint }: { label: string; error?: string
 }
 
 const inputClass =
-  "w-full px-4 py-3 rounded-[12px] border border-[#f0e8e0] bg-white text-[#1a1008] text-sm placeholder:text-[#c4b8ae] focus:outline-none focus:ring-2 focus:ring-[#E76F51]/30 focus:border-[#E76F51] transition-all";
+  "w-full px-4 py-3 rounded-xl border border-[#f0e8e0] bg-white text-[#1a1008] text-sm placeholder:text-[#c4b8ae] focus:outline-none focus:ring-2 focus:ring-[#E76F51]/30 focus:border-[#E76F51] transition-all";
 
 const textareaClass =
-  "w-full px-4 py-3 rounded-[12px] border border-[#f0e8e0] bg-white text-[#1a1008] text-sm placeholder:text-[#c4b8ae] focus:outline-none focus:ring-2 focus:ring-[#E76F51]/30 focus:border-[#E76F51] transition-all resize-none";
+  "w-full px-4 py-3 rounded-xl border border-[#f0e8e0] bg-white text-[#1a1008] text-sm placeholder:text-[#c4b8ae] focus:outline-none focus:ring-2 focus:ring-[#E76F51]/30 focus:border-[#E76F51] transition-all resize-none";
 
 // ─── Image Upload Zone ────────────────────────────────────────────────────────
 interface ImageUploadProps {
@@ -176,7 +177,7 @@ function ImageUploadZone({ existingImages, onFilesChange, onRemoveExisting }: Im
         onDragLeave={() => setDragging(false)}
         onDrop={(e) => { e.preventDefault(); setDragging(false); processFiles(e.dataTransfer.files); }}
         onClick={() => inputRef.current?.click()}
-        className={`border-2 border-dashed rounded-[12px] p-6 text-center cursor-pointer transition-all ${
+        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
           dragging ? "border-[#E76F51] bg-[#E76F51]/5" : "border-[#f0e8e0] hover:border-[#E76F51]/40 hover:bg-[#faf6f2]"
         }`}
       >
@@ -232,7 +233,7 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
     },
   });
 
-  async function onSubmit(data: ProductForm) {
+  const onSubmit: SubmitHandler<ProductForm> = async (data) => {
     try {
       setUploading(true);
 
@@ -252,7 +253,7 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
         saved = await productService.update(product._id, {
           name: data.name,
           description: data.description,
-          category: data.category,
+          category: data.category as ProductCategory,
           price: data.priceAmount,
           fairTradeCertified: data.fairTradeCertified,
           stock: data.stock,
@@ -298,7 +299,7 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto">
       <div
-        className="bg-[#FFFCF8] rounded-[24px] w-full max-w-2xl my-8 shadow-2xl"
+        className="bg-[#FFFCF8] rounded-3xl w-full max-w-2xl my-8 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal header */}
@@ -345,19 +346,19 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
             </Field>
 
             <Field label="Stock" error={errors.stock?.message}>
-              <input {...register("stock")} type="number" min={0} className={inputClass} placeholder="0" />
+              <input {...register("stock", { valueAsNumber: true })} type="number" min={0} className={inputClass} placeholder="0" />
             </Field>
           </div>
 
           {/* Price row */}
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2">
-              <Field label="Price" error={errors.price?.amount?.message}>
-                <input {...register("price.amount")} type="number" min={0} step="0.01" className={inputClass} placeholder="0.00" />
+              <Field label="Price" error={errors.priceAmount?.message}>
+                <input {...register("priceAmount", { valueAsNumber: true })} type="number" min={0} step="0.01" className={inputClass} placeholder="0.00" />
               </Field>
             </div>
-            <Field label="Currency" error={errors.price?.currency?.message}>
-              <select {...register("price.currency")} className={inputClass}>
+            <Field label="Currency" error={errors.priceCurrency?.message}>
+              <select {...register("priceCurrency")} className={inputClass}>
                 {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </Field>
@@ -381,7 +382,7 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
           {/* Fair Trade toggle */}
           <label className="flex items-center gap-3 cursor-pointer select-none">
             <div className="relative">
-              <input {...register("isFairTrade")} type="checkbox" className="sr-only peer" />
+              <input {...register("fairTradeCertified")} type="checkbox" className="sr-only peer" />
               <div className="w-11 h-6 bg-[#f0e8e0] rounded-full peer-checked:bg-[#2A9D8F] transition-colors" />
               <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
             </div>
@@ -421,7 +422,7 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
 function DeleteConfirmModal({ product, onConfirm, onCancel }: { product: Product; onConfirm: () => void; onCancel: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#FFFCF8] rounded-[24px] w-full max-w-sm p-8 shadow-2xl text-center">
+      <div className="bg-[#FFFCF8] rounded-3xl w-full max-w-sm p-8 shadow-2xl text-center">
         <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round"/>
@@ -515,7 +516,22 @@ export default function CoopDashboard() {
           artisanCount: data.artisanCount ?? undefined,
           foundedYear: data.foundedYear ?? undefined,
         });
-        setReviews((data.reviews as CoopReview[]) ?? []);
+        setReviews(
+          (data.reviews ?? []).map((r) => {
+            const raw = r as unknown as { _id: string; rating: number; comment: string; createdAt: string; productName?: string; userName?: string; reviewer?: unknown };
+            const reviewerName = typeof raw.reviewer === "object" && raw.reviewer !== null
+              ? (raw.reviewer as { name?: string }).name
+              : typeof raw.reviewer === "string" ? raw.reviewer : undefined;
+            return {
+              _id: raw._id,
+              rating: raw.rating,
+              comment: raw.comment,
+              createdAt: raw.createdAt,
+              productName: raw.productName,
+              userName: raw.userName ?? reviewerName ?? "Anonymous",
+            } satisfies CoopReview;
+          })
+        );
       } catch {
         // silent
       } finally {
@@ -558,7 +574,7 @@ export default function CoopDashboard() {
     setModalProduct(null);
   }
 
-  async function onCoopSettingsSubmit(data: CoopSettingsForm) {
+  const onCoopSettingsSubmit: SubmitHandler<CoopSettingsForm> = async (data) => {
     if (!user?.cooperativeId) return;
     try {
       await coopService.update(user.cooperativeId, {
@@ -575,7 +591,7 @@ export default function CoopDashboard() {
     }
   }
 
-  async function onAccountSubmit(data: AccountForm) {
+  const onAccountSubmit: SubmitHandler<AccountForm> = async (data) => {
     try {
       await api.patch("/auth/me", {
         name: data.name,
@@ -608,11 +624,11 @@ export default function CoopDashboard() {
       <Navbar />
 
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#2A9D8F]/8 via-[#FFFCF8] to-[#E9C46A]/5 border-b border-[#f0e8e0]">
+      <div className="bg-linear-to-br from-[#2A9D8F]/8 via-[#FFFCF8] to-[#E9C46A]/5 border-b border-[#f0e8e0]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-5">
-              <div className="w-16 h-16 rounded-[14px] bg-gradient-to-br from-[#2A9D8F] to-[#E9C46A] flex items-center justify-center text-white font-['Playfair_Display'] font-bold text-2xl flex-shrink-0">
+              <div className="w-16 h-16 rounded-[14px] bg-linear-to-br from-[#2A9D8F] to-[#E9C46A] flex items-center justify-center text-white font-['Playfair_Display'] font-bold text-2xl shrink-0">
                 {coop?.name?.charAt(0) ?? user?.name?.charAt(0) ?? "C"}
               </div>
               <div>
@@ -633,7 +649,7 @@ export default function CoopDashboard() {
                 { label: "Reviews", value: reviews.length },
                 ...(avgRating !== null ? [{ label: "Avg Rating", value: avgRating.toFixed(1) }] : []),
               ].map((stat) => (
-                <div key={stat.label} className="bg-white rounded-[14px] px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] text-center min-w-[70px]">
+                <div key={stat.label} className="bg-white rounded-[14px] px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] text-center min-w-17.5">
                   <p className="text-xl font-['Playfair_Display'] font-bold text-[#1a1008]">{stat.value}</p>
                   <p className="text-xs text-[#9a8a7a] mt-0.5">{stat.label}</p>
                 </div>
@@ -687,7 +703,7 @@ export default function CoopDashboard() {
             {loadingProducts ? (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-[16px] h-20 animate-pulse" />
+                  <div key={i} className="bg-white rounded-2xl h-20 animate-pulse" />
                 ))}
               </div>
             ) : products.length === 0 ? (
@@ -722,7 +738,7 @@ export default function CoopDashboard() {
                   >
                     {/* Product name + image */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-[8px] overflow-hidden bg-[#faf6f2] flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#faf6f2] shrink-0">
                         {product.images?.[0] ? (
                           <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
@@ -746,7 +762,7 @@ export default function CoopDashboard() {
 
                     {/* Price */}
                     <span className="text-sm font-semibold text-[#E76F51]">
-                      {product.price.currency} {product.price.amount.toFixed(2)}
+                      MAD {(product.price as number).toFixed(2)}
                     </span>
 
                     {/* Stock */}
@@ -808,7 +824,7 @@ export default function CoopDashboard() {
                       <StarRating rating={avgRating} size={18} />
                       <p className="text-xs text-[#9a8a7a] mt-1">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p>
                     </div>
-                    <div className="space-y-1 min-w-[140px]">
+                    <div className="space-y-1 min-w-35">
                       {[5, 4, 3, 2, 1].map((star) => {
                         const count = reviews.filter((r) => Math.round(r.rating) === star).length;
                         const pct = reviews.length ? (count / reviews.length) * 100 : 0;
@@ -831,7 +847,7 @@ export default function CoopDashboard() {
                     <div key={review._id} className="bg-white rounded-[20px] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E76F51] to-[#E9C46A] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#E76F51] to-[#E9C46A] flex items-center justify-center text-white font-bold text-sm shrink-0">
                             {review.userName?.charAt(0).toUpperCase() ?? "?"}
                           </div>
                           <div>
@@ -883,10 +899,10 @@ export default function CoopDashboard() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <Field label="Number of Artisans" error={coopForm.formState.errors.artisanCount?.message}>
-                      <input {...coopForm.register("artisanCount")} type="number" min={0} className={inputClass} placeholder="e.g. 24" />
+                      <input {...coopForm.register("artisanCount", { valueAsNumber: true })} type="number" min={0} className={inputClass} placeholder="e.g. 24" />
                     </Field>
                     <Field label="Founded Year" error={coopForm.formState.errors.foundedYear?.message}>
-                      <input {...coopForm.register("foundedYear")} type="number" min={1900} max={2025} className={inputClass} placeholder="e.g. 2008" />
+                      <input {...coopForm.register("foundedYear", { valueAsNumber: true })} type="number" min={1900} max={2025} className={inputClass} placeholder="e.g. 2008" />
                     </Field>
                   </div>
 
