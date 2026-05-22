@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import mongoose from "mongoose";
 import { env } from "./config/env";
 import connectDB from "./config/db";
 import authRoutes from "./routes/authRoutes";
@@ -34,6 +35,19 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Routes
+app.get("/api/health", (req, res) => {
+  const states = ["disconnected", "connected", "connecting", "disconnecting"];
+  res.json({
+    ok: mongoose.connection.readyState === 1,
+    service: "the-souk-api",
+    mongo: {
+      state: states[mongoose.connection.readyState] ?? "unknown",
+      host: mongoose.connection.host || null,
+      name: mongoose.connection.name || null,
+    },
+  });
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
