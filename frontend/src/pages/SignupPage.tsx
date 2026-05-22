@@ -43,6 +43,25 @@ const CATEGORIES = [
   { value: "other",   label: "Other" },
 ];
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof error.response === "object" &&
+    error.response !== null &&
+    "data" in error.response &&
+    typeof error.response.data === "object" &&
+    error.response.data !== null &&
+    "message" in error.response.data &&
+    typeof error.response.data.message === "string"
+  ) {
+    return error.response.data.message;
+  }
+
+  return fallback;
+}
+
 export default function SignupPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -77,8 +96,8 @@ const role = useWatch({ control, name: "role" });
       await login({ email: data.email, password: data.password });
       toast.success("Welcome to The Souk!");
       navigate("/dashboard");
-    } catch {
-      toast.error("Registration failed. Email may already be in use.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Registration failed. Please try again."));
     } finally {
       setIsLoading(false);
     }
