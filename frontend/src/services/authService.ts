@@ -22,8 +22,8 @@ export const authService = {
   },
 
   async me(): Promise<User> {
-    const { data } = await api.get<{ user: User }>("/auth/me");
-    return data.user;
+    const { data } = await api.get<User>("/auth/me");
+    return data;
   },
 
   async refresh(): Promise<AuthResponse> {

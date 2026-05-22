@@ -16,7 +16,7 @@ export const getAccessToken = (): string | null => _accessToken;
 // ── Axios instance ─────────────────────────────────────────────────────────
 
 const api: AxiosInstance = axios.create({
-  baseURL: "/api",             // proxied to http://localhost:5000 by Vite
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,       // send httpOnly refresh token cookie
   headers: {
     "Content-Type": "application/json",

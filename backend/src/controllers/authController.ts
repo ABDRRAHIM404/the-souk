@@ -1,19 +1,32 @@
-import { Request, Response } from "express";
+import { Request, Response, type CookieOptions } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { env, isProduction } from "../config/env";
 import User, { IUser } from "../models/User";
 import Cooperative from "../models/Cooperative";
 
 const generateAccessToken = (id: string): string => {
-  const secret = process.env.JWT_ACCESS_SECRET as string;
+  const secret = env.jwtAccessSecret;
   const token = (jwt as any).sign({ id }, secret, { expiresIn: 900 });
   return token;
 };
 
 const generateRefreshToken = (id: string): string => {
-  const secret = process.env.JWT_REFRESH_SECRET as string;
+  const secret = env.jwtRefreshSecret;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (jwt as any).sign({ id }, secret, { expiresIn: 604800 });
+};
+
+const refreshCookieOptions: CookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
+const clearRefreshCookieOptions: CookieOptions = {
+  ...refreshCookieOptions,
+  expires: new Date(0),
 };
 
 // Builds the user object sent to the frontend — always includes cooperativeId for coop_owners.
@@ -78,10 +91,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 const accessToken = generateAccessToken(user._id.toString());
 const refreshToken = generateRefreshToken(user._id.toString());
 res.cookie("refreshToken", refreshToken, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
+  ...refreshCookieOptions,
 });
 
     res.status(201).json({
@@ -111,10 +121,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const refreshToken = generateRefreshToken(user._id.toString());
 
     res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      ...refreshCookieOptions,
     });
 
     res.json({
@@ -130,7 +137,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 // @desc    Logout user
 // @route   POST /api/auth/logout
 export const logout = async (req: Request, res: Response): Promise<void> => {
-  res.cookie("refreshToken", "", { httpOnly: true, expires: new Date(0) });
+  res.cookie("refreshToken", "", clearRefreshCookieOptions);
   res.json({ message: "Logged out successfully" });
 };
 
@@ -160,9 +167,15 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET as string) as { id: string };
+    const decoded = jwt.verify(token, env.jwtRefreshSecret) as { id: string };
     const accessToken = generateAccessToken(decoded.id);
-    res.json({ accessToken });
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) {
+      res.status(401).json({ message: "User not found" });
+      return;
+    }
+
+    res.json({ accessToken, user: await buildUserPayload(user) });
   } catch (error) {
     res.status(401).json({ message: "Invalid refresh token" });
   }

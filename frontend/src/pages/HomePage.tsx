@@ -7,6 +7,7 @@ import type { Product, Cooperative, PaginatedResponse } from "@/types";
 import { productService } from "@/services/productService";
 import { coopService } from "@/services/coopService";
 import toast from "react-hot-toast";
+import { cssUrl } from "@/utils/media";
 
 // ── Product Card (inline for HomePage) ────────────────────────────────────
 
@@ -41,7 +42,7 @@ function HomeProductCard({ product }: { product: Product }) {
           style={{
             height: 200,
             background: product.images[0]
-              ? `url(http://localhost:5000${product.images[0]}) center/cover no-repeat`
+              ? cssUrl(product.images[0])
               : "linear-gradient(135deg, #f0e8e0, #E9C46A22)",
             display: "flex",
             alignItems: "flex-end",
@@ -163,7 +164,7 @@ function HomeCoopCard({ coop }: { coop: Cooperative }) {
           style={{
             height: 140,
             background: coop.coverImage
-              ? `url(http://localhost:5000${coop.coverImage}) center/cover no-repeat`
+              ? cssUrl(coop.coverImage)
               : "linear-gradient(135deg, #E76F5122, #E9C46A33)",
             display: "flex",
             alignItems: "center",

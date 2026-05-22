@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import api from "@/services/api";
 import toast from "react-hot-toast";
+import { cssUrl, mediaUrl } from "@/utils/media";
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 
@@ -147,7 +148,7 @@ function ReviewCard({ review }: { review: Review }) {
       {/* Photo */}
       {review.photo && (
         <img
-          src={`http://localhost:5000${review.photo}`}
+          src={mediaUrl(review.photo)}
           alt="Purchase photo"
           style={{
             marginTop: 14,
@@ -187,7 +188,7 @@ function RelatedCard({ product }: { product: Product }) {
           style={{
             height: 180,
             background: product.images[0]
-              ? `url(http://localhost:5000${product.images[0]}) center/cover no-repeat`
+              ? cssUrl(product.images[0])
               : "linear-gradient(135deg, #f0e8e0, #E9C46A22)",
           }}
         />
@@ -460,7 +461,7 @@ export default function ProductDetailPage() {
                   borderRadius: 24,
                   overflow: "hidden",
                   background: product.images[activeImage]
-                    ? `url(http://localhost:5000${product.images[activeImage]}) center/cover no-repeat`
+                    ? cssUrl(product.images[activeImage])
                     : "linear-gradient(135deg, #f0e8e0 0%, #E9C46A22 100%)",
                   height: 480,
                   marginBottom: 14,
@@ -519,7 +520,7 @@ export default function ProductDetailPage() {
                         height: 76,
                         borderRadius: 14,
                         border: `2px solid ${i === activeImage ? "#E76F51" : "#f0e8e0"}`,
-                        background: `url(http://localhost:5000${img}) center/cover no-repeat`,
+                        background: cssUrl(img),
                         cursor: "pointer",
                         flexShrink: 0,
                         transition: "border-color 0.2s ease",
@@ -782,7 +783,7 @@ export default function ProductDetailPage() {
                     height: 52,
                     borderRadius: "50%",
                     background: coop?.coverImage
-                      ? `url(http://localhost:5000${coop.coverImage}) center/cover no-repeat`
+                      ? cssUrl(coop.coverImage)
                       : "linear-gradient(135deg, #E76F51, #E9C46A)",
                     display: "flex",
                     alignItems: "center",
