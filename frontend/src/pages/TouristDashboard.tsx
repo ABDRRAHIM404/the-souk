@@ -387,7 +387,11 @@ export default function TouristDashboard() {
               </div>
             ) : wishlist.length === 0 ? (
               <div className="text-center py-20">
-                <div className="text-6xl mb-4">🛍️</div>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#f0e8e0] flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[#E76F51]">
+                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
                 <h3 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008] mb-2">
                   Your wishlist is empty
                 </h3>
@@ -427,7 +431,11 @@ export default function TouristDashboard() {
               </div>
             ) : myReviews.length === 0 ? (
               <div className="text-center py-20">
-                <div className="text-6xl mb-4">⭐</div>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#f0e8e0] flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 20 20" fill="none" className="text-[#E76F51]">
+                    <polygon points="10,2 12.4,7.8 18.5,8.2 14,12.2 15.6,18.1 10,15 4.4,18.1 6,12.2 1.5,8.2 7.6,7.8" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                  </svg>
+                </div>
                 <h3 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008] mb-2">
                   No reviews yet
                 </h3>

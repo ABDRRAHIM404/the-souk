@@ -708,7 +708,13 @@ export default function CoopDashboard() {
               </div>
             ) : products.length === 0 ? (
               <div className="text-center py-20">
-                <div className="text-6xl mb-4">🧺</div>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#f0e8e0] flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[#E76F51]">
+                    <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M12 12v4M10 14h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </div>
                 <h3 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008] mb-2">No products yet</h3>
                 <p className="text-[#9a8a7a] mb-6">List your first product to start selling on The Souk.</p>
                 <button
@@ -810,7 +816,12 @@ export default function CoopDashboard() {
               </div>
             ) : reviews.length === 0 ? (
               <div className="text-center py-20">
-                <div className="text-6xl mb-4">💬</div>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#f0e8e0] flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[#E76F51]">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 10h8M8 13h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </div>
                 <h3 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008] mb-2">No reviews yet</h3>
                 <p className="text-[#9a8a7a]">Reviews left by customers on your products will appear here.</p>
               </div>
@@ -962,10 +973,10 @@ export default function CoopDashboard() {
       </div>
 
       {/* ── Modals ─────────────────────────────────────────────────────────── */}
-      {modalProduct !== null && user?.cooperativeId && (
+      {modalProduct !== null && (
         <ProductModal
           product={modalProduct === "new" ? null : modalProduct}
-          coopId={user.cooperativeId}
+          coopId={user?.cooperativeId ?? coop?._id ?? ""}
           onClose={() => setModalProduct(null)}
           onSaved={handleProductSaved}
         />
