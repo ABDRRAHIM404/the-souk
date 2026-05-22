@@ -19,17 +19,17 @@ export interface ICooperative extends Document {
 
 const CooperativeSchema = new Schema<ICooperative>(
   {
-    owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    name: { type: String, required: true, trim: true },
-    description: { type: String, required: true },
+    owner: { type: Schema.Types.ObjectId, ref: "User", default: "" },
+    name: { type: String, default: "", trim: true },
+    description: { type: String, default: "" },
     location: {
-      city: { type: String, required: true },
-      region: { type: String, required: true },
+      city: { type: String, default: "" },
+      region: { type: String, default: "" },
     },
     category: {
       type: String,
       enum: ["argan", "carpets", "saffron", "pottery", "food", "leather", "other"],
-      required: true,
+      default: "",
     },
     coverImage: { type: String, default: "" },
     photos: [{ type: String }],
