@@ -8,6 +8,7 @@ export const getCoops = async (req: Request, res: Response): Promise<void> => {
     const data = await Cooperative.find().sort({ createdAt: -1 }).lean();
     res.json({ success: true, data, total: data.length, page: 1, pages: 1 });
   } catch (error) {
+    console.error("getCoops error:", error);
     res.status(500).json({ message: "Server error", error: (error as Error).message });
   }
 };

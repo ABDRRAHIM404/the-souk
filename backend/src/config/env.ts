@@ -10,8 +10,10 @@ for (const key of required) {
   }
 }
 
+const normalizeOrigin = (url: string) => url.trim().replace(/\/+$/, "");
+
 const clientUrls = process.env.CLIENT_URL!.split(",")
-  .map((url) => url.trim())
+  .map(normalizeOrigin)
   .filter(Boolean);
 
 export const env = {

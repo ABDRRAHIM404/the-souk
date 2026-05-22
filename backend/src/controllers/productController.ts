@@ -48,6 +48,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 
     res.json({ success: true, data, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
+    console.error("getProducts error:", error);
     res.status(500).json({ message: "Server error", error: (error as Error).message });
   }
 };
