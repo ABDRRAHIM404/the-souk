@@ -13,10 +13,16 @@ export const setAccessToken = (token: string | null) => {
 
 export const getAccessToken = (): string | null => _accessToken;
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+if (!API_BASE_URL) {
+  throw new Error("Missing VITE_API_URL. Set it to the Railway backend URL ending with /api.");
+}
+
 // ── Axios instance ─────────────────────────────────────────────────────────
 
 const api: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_BASE_URL,
   withCredentials: true,       // send httpOnly refresh token cookie
   headers: {
     "Content-Type": "application/json",
