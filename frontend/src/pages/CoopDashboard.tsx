@@ -14,8 +14,27 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const CATEGORIES = ["weaving", "pottery", "argan", "jewellery", "leather", "woodwork", "cosmetics", "food", "other"];
+const CATEGORIES: ProductCategory[] = ["argan", "carpets", "saffron", "pottery", "food", "leather", "other"];
 const CURRENCIES = ["MAD", "EUR", "USD", "GBP"];
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof error.response === "object" &&
+    error.response !== null &&
+    "data" in error.response &&
+    typeof error.response.data === "object" &&
+    error.response.data !== null &&
+    "message" in error.response.data &&
+    typeof error.response.data.message === "string"
+  ) {
+    return error.response.data.message;
+  }
+
+  return fallback;
+}
 
 // ─── Product form schema ──────────────────────────────────────────────────────
 // price.amount uses valueAsNumber on the input so the field arrives as a number.
@@ -282,8 +301,8 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
         toast.success("Product listed!");
       }
       onSaved(saved);
-    } catch {
-      toast.error("Could not save product");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Could not save product"));
     } finally {
       setUploading(false);
     }

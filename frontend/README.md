@@ -210,6 +210,16 @@ follow(id: string): Promise<ApiResponse<{ followed: boolean }>>
   - Frontend lint passes (`npm.cmd run lint`)
   - Encoding scan found no stored mojibake in `backend/src`, `frontend/src`, or this README
 
+### Product Upload Fix
+- `src/pages/CoopDashboard.tsx`:
+  - Fixed product category options to match backend `Product` enum: `argan`, `carpets`, `saffron`, `pottery`, `food`, `leather`, `other`
+  - Removed frontend-only category values that caused product save validation failures (`weaving`, `jewellery`, `woodwork`, `cosmetics`)
+  - Added backend error-message extraction so product save failures show a useful toast instead of only "Could not save product"
+- Validation:
+  - Frontend lint passes (`npm.cmd run lint`)
+  - Frontend production build passes (`npm.cmd run build`)
+  - Backend TypeScript build passes (`npm.cmd run build`)
+
 ---
 
 ## Backend API
