@@ -91,7 +91,6 @@ const buildUserPayload = async (user: IUser) => {
 // @route   POST /api/auth/register
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log("Register request body:", req.body);
     const { name, email, password, role, country, cooperativeName, cooperativeCity, cooperativeCategory } = req.body;
     const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
@@ -112,7 +111,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 
     const user = await User.create({ name, email: normalizedEmail, password, role, country: country || "" });
-   console.log("User created:", user._id);
     
     try {
       if (role === "coop_owner" && cooperativeName) {
@@ -153,8 +151,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    if (!normalizedEmail || !password) {
+      res.status(400).json({ message: "Please provide email and password" });
+      return;
+    }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user || !(await user.comparePassword(password))) {
       res.status(401).json({ message: "Invalid email or password" });
       return;

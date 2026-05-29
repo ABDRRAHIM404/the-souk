@@ -19,7 +19,7 @@ export interface ICooperative extends Document {
 
 const CooperativeSchema = new Schema<ICooperative>(
   {
-    owner: { type: Schema.Types.ObjectId, ref: "User", default: "" },
+    owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
     name: { type: String, default: "", trim: true },
     description: { type: String, default: "" },
     location: {
@@ -29,7 +29,7 @@ const CooperativeSchema = new Schema<ICooperative>(
     category: {
       type: String,
       enum: ["argan", "carpets", "saffron", "pottery", "food", "leather", "other"],
-      default: "",
+      default: "other",
     },
     coverImage: { type: String, default: "" },
     photos: [{ type: String }],

@@ -3,9 +3,17 @@ import Cooperative from "../models/Cooperative";
 import Product from "../models/Product";
 import { AuthRequest } from "../middleware/authMiddleware";
 
+const serializeCoop = (coop: any) => ({
+  ...coop,
+  city: coop.location?.city ?? "",
+  region: coop.location?.region ?? "",
+  isCertified: coop.verified ?? false,
+  followersCount: coop.followers?.length ?? 0,
+});
+
 export const getCoops = async (req: Request, res: Response): Promise<void> => {
   try {
-    const data = await Cooperative.find().sort({ createdAt: -1 }).lean();
+    const data = (await Cooperative.find().sort({ createdAt: -1 }).lean()).map(serializeCoop);
     res.json({ success: true, data, total: data.length, page: 1, pages: 1 });
   } catch (error) {
     console.error("getCoops error:", error);
@@ -22,7 +30,7 @@ export const getCoopById = async (req: Request, res: Response): Promise<void> =>
     }
 
     const productCount = await Product.countDocuments({ cooperative: coop._id });
-    res.json({ success: true, data: { ...coop, productCount } });
+    res.json({ success: true, data: { ...serializeCoop(coop), productCount } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: (error as Error).message });
   }
@@ -31,7 +39,7 @@ export const getCoopById = async (req: Request, res: Response): Promise<void> =>
 export const createCoop = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const coop = await Cooperative.create({ ...req.body, owner: req.user!._id });
-    res.status(201).json({ success: true, data: coop });
+    res.status(201).json({ success: true, data: serializeCoop(coop.toObject()) });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: (error as Error).message });
   }
@@ -39,6 +47,7 @@ export const createCoop = async (req: AuthRequest, res: Response): Promise<void>
 
 export const updateCoop = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const { city, region, ...updates } = req.body;
     const coop = await Cooperative.findById(req.params.id);
     if (!coop) {
       res.status(404).json({ message: "Cooperative not found" });
@@ -50,9 +59,15 @@ export const updateCoop = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
-    Object.assign(coop, req.body);
+    Object.assign(coop, updates);
+    if (city !== undefined || region !== undefined) {
+      coop.location = {
+        city: city ?? coop.location.city,
+        region: region ?? coop.location.region,
+      };
+    }
     await coop.save();
-    res.json({ success: true, data: coop });
+    res.json({ success: true, data: serializeCoop(coop.toObject()) });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: (error as Error).message });
   }

@@ -8,44 +8,41 @@ import Product from "../models/Product";
 // Groups items by cooperative and creates one order per coop.
 
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
+  const {
+    items,
+    shippingAddress,
+  } = req.body;
+
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    res.status(400).json({ message: "Cart is empty" });
+    return;
+  }
+
+  if (!shippingAddress) {
+    res.status(400).json({ message: "Shipping address is required" });
+    return;
+  }
+
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const touristId = (req as any).user._id;
 
-    const {
-      items,          // [{ productId: string, quantity: number }]
-      shippingAddress // { fullName, address, city, country, phone }
-    } = req.body;
-
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      res.status(400).json({ message: "Cart is empty" });
-      return;
-    }
-
-    if (!shippingAddress) {
-      res.status(400).json({ message: "Shipping address is required" });
-      return;
-    }
-
-    // Fetch all products in one query
     const productIds = items.map((i: any) => i.productId);
-    const products = await Product.find({ _id: { $in: productIds } }).lean();
+    const products = await Product.find({ _id: { $in: productIds } }).session(session);
 
     if (products.length !== productIds.length) {
-      res.status(400).json({ message: "One or more products not found" });
-      return;
+      throw new Error("PRODUCT_NOT_FOUND");
     }
 
-    // Check stock
     for (const item of items) {
       const product = products.find((p) => p._id.toString() === item.productId);
       if (!product) continue;
       if (product.stock !== undefined && product.stock < item.quantity) {
-        res.status(400).json({ message: `Insufficient stock for "${product.name}"` });
-        return;
+        throw new Error(`INSUFFICIENT_STOCK:${product.name}`);
       }
     }
 
-    // Group items by cooperative
     const coopMap = new Map<string, { productId: string; quantity: number }[]>();
     for (const item of items) {
       const product = products.find((p) => p._id.toString() === item.productId)!;
@@ -54,7 +51,6 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
       coopMap.get(coopId)!.push(item);
     }
 
-    // Build one Order document per cooperative
     const orderDocs = [];
     for (const [coopId, coopItems] of coopMap) {
       const orderItems = coopItems.map((item) => {
@@ -82,20 +78,41 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
       });
     }
 
-    const created = await Order.insertMany(orderDocs);
+    const created = await Order.insertMany(orderDocs, { session });
 
-    // Decrement stock for each product
     for (const item of items) {
-      await Product.updateOne(
-        { _id: item.productId },
-        { $inc: { stock: -item.quantity } }
+      const stockUpdate = await Product.updateOne(
+        { _id: item.productId, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } },
+        { session }
       );
+      if (stockUpdate.modifiedCount !== 1) {
+        throw new Error("INSUFFICIENT_STOCK_WRITE");
+      }
     }
+
+    await session.commitTransaction();
 
     res.status(201).json(created);
   } catch (error) {
+    await session.abortTransaction();
+    const message = (error as Error).message || "Server error";
+    if (message === "PRODUCT_NOT_FOUND") {
+      res.status(400).json({ message: "One or more products not found" });
+      return;
+    }
+    if (message.startsWith("INSUFFICIENT_STOCK:")) {
+      res.status(400).json({ message: `Insufficient stock for "${message.split(":")[1]}"` });
+      return;
+    }
+    if (message === "INSUFFICIENT_STOCK_WRITE") {
+      res.status(400).json({ message: "One or more items are no longer in stock in the requested quantity" });
+      return;
+    }
     console.error("createOrder error:", error);
-    res.status(500).json({ message: "Server error", error: (error as Error).message });
+    res.status(500).json({ message: "Server error", error: message });
+  } finally {
+    await session.endSession();
   }
 };
 
@@ -108,7 +125,7 @@ export const getMyOrders = async (req: Request, res: Response): Promise<void> =>
 
     const orders = await Order.find({ tourist: touristId })
       .populate("items.product", "name images price category")
-      .populate("cooperative", "name logo city")
+      .populate("cooperative", "name location category verified coverImage")
       .sort({ createdAt: -1 })
       .lean();
 

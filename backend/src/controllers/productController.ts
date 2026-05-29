@@ -22,11 +22,23 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 
     const filter: Record<string, unknown> = {};
     if (req.query.category) filter.category = req.query.category;
-    if (req.query.cooperative) filter.cooperative = req.query.cooperative;
+    const cooperativeFilter = typeof req.query.cooperative === "string" ? req.query.cooperative : null;
 
     if (req.query.region) {
       const coops = await Cooperative.find({ "location.region": req.query.region }).select("_id").lean();
-      filter.cooperative = { $in: coops.map((coop) => coop._id) };
+      const regionCoopIds = coops.map((coop) => coop._id.toString());
+
+      if (cooperativeFilter) {
+        if (!regionCoopIds.includes(cooperativeFilter)) {
+          res.json({ success: true, data: [], total: 0, page, pages: 0 });
+          return;
+        }
+        filter.cooperative = cooperativeFilter;
+      } else {
+        filter.cooperative = { $in: coops.map((coop) => coop._id) };
+      }
+    } else if (cooperativeFilter) {
+      filter.cooperative = cooperativeFilter;
     }
 
     const sort: Record<string, SortOrder> =
@@ -38,7 +50,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 
     const [data, total] = await Promise.all([
       Product.find(filter)
-        .populate("cooperative", "name logo location city region")
+        .populate("cooperative", "name location category verified coverImage")
         .sort(sort)
         .skip(skip)
         .limit(limit)
@@ -56,7 +68,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 export const getProductById = async (req: Request, res: Response): Promise<void> => {
   try {
     const product = await Product.findById(req.params.id)
-      .populate("cooperative", "name logo location city region isCertified")
+      .populate("cooperative", "name location category verified coverImage")
       .lean();
 
     if (!product) {
