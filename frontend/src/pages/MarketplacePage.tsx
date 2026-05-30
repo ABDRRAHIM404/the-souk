@@ -109,6 +109,33 @@ function ProductSkeleton({ layout }: { layout: "grid" | "list" }) {
   );
 }
 
+function MarketplaceSearch({
+  initialSearch,
+  onSearch,
+}: {
+  initialSearch: string;
+  onSearch: (value: string) => void;
+}) {
+  const [draft, setDraft] = useState(initialSearch);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(draft.trim());
+  };
+
+  return (
+    <form className="market-search" onSubmit={handleSubmit} aria-label="Search products">
+      <SearchIcon />
+      <input
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        placeholder="Search argan oil, carpets, saffron..."
+      />
+      <button type="submit">Search</button>
+    </form>
+  );
+}
+
 export default function MarketplacePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
@@ -116,7 +143,6 @@ export default function MarketplacePage() {
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
   const [layout, setLayout] = useState<"grid" | "list">("grid");
-  const [searchDraft, setSearchDraft] = useState(searchParams.get("search") ?? "");
 
   const { wishlistSet } = useWishlist();
 
@@ -125,10 +151,6 @@ export default function MarketplacePage() {
   const sort = searchParams.get("sort") ?? "newest";
   const page = Number(searchParams.get("page") ?? 1);
   const search = searchParams.get("search") ?? "";
-
-  useEffect(() => {
-    setSearchDraft(search);
-  }, [search]);
 
   const selectedCategoryLabel = CATEGORIES.find((cat) => cat.value === category)?.label ?? "All";
   const selectedSortLabel = SORTS.find((item) => item.value === sort)?.label ?? "Newest";
@@ -149,7 +171,6 @@ export default function MarketplacePage() {
   };
 
   const clearFilters = () => {
-    setSearchDraft("");
     setSearchParams({});
   };
 
@@ -157,11 +178,6 @@ export default function MarketplacePage() {
     const next = new URLSearchParams(searchParams);
     next.set("page", String(p));
     setSearchParams(next);
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFilter("search", searchDraft.trim());
   };
 
   useEffect(() => {
@@ -235,15 +251,11 @@ export default function MarketplacePage() {
                 )}
               </div>
 
-              <form className="market-search" onSubmit={handleSearchSubmit} aria-label="Search products">
-                <SearchIcon />
-                <input
-                  value={searchDraft}
-                  onChange={(e) => setSearchDraft(e.target.value)}
-                  placeholder="Search argan oil, carpets, saffron..."
-                />
-                <button type="submit">Search</button>
-              </form>
+              <MarketplaceSearch
+                key={search}
+                initialSearch={search}
+                onSearch={(value) => setFilter("search", value)}
+              />
 
               <div className="market-category-scroller" aria-label="Product categories">
                 {CATEGORIES.map((cat) => (
