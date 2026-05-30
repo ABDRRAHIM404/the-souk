@@ -220,6 +220,21 @@ follow(id: string): Promise<ApiResponse<{ followed: boolean }>>
   - Frontend production build passes (`npm.cmd run build`)
   - Backend TypeScript build passes (`npm.cmd run build`)
 
+### Cooperative Profile Link Fix
+- `src/models/Cooperative.ts`:
+  - Added persisted profile fields used by the dashboard: `impactStatement`, `artisanCount`, and `foundedYear`
+- `src/controllers/coopController.ts`:
+  - `POST /api/coops` now links the created cooperative back to the owner via `User.cooperativeId`
+  - If a cooperative already exists for the owner, the route reuses it and backfills `cooperativeId`
+- `src/pages/CoopDashboard.tsx`:
+  - Cooperative settings now create a cooperative profile when the logged-in coop owner has no `cooperativeId`
+  - After create/update, auth refresh runs so the session receives the new `cooperativeId`
+  - Add Product now sends the user to Settings with a clear toast until a cooperative profile exists
+- Validation:
+  - Backend TypeScript build passes (`npm.cmd run build`)
+  - Frontend lint passes (`npm.cmd run lint`)
+  - Frontend production build passes (`npm.cmd run build`)
+
 ---
 
 ## Backend API

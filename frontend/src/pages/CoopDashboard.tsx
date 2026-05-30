@@ -505,8 +505,11 @@ export default function CoopDashboard() {
 
   // Fetch products
   useEffect(() => {
-    if (!user?.cooperativeId) return;
     async function load() {
+      if (!user?.cooperativeId) {
+        setLoadingProducts(false);
+        return;
+      }
       try {
         setLoadingProducts(true);
         const res = await productService.getAll({ cooperative: user!.cooperativeId, limit: 100 });
@@ -522,8 +525,11 @@ export default function CoopDashboard() {
 
   // Fetch coop profile + reviews
   useEffect(() => {
-    if (!user?.cooperativeId) return;
     async function load() {
+      if (!user?.cooperativeId) {
+        setLoadingReviews(false);
+        return;
+      }
       try {
         const data = await coopService.getById(user!.cooperativeId!);
         setCoop(data);
@@ -594,16 +600,26 @@ export default function CoopDashboard() {
   }
 
   const onCoopSettingsSubmit: SubmitHandler<CoopSettingsForm> = async (data) => {
-    if (!user?.cooperativeId) return;
     try {
-      await coopService.update(user.cooperativeId, {
+      const payload = {
         name: data.cooperativeName,
         city: data.cooperativeCity,
         description: data.description,
         impactStatement: data.impactStatement,
         artisanCount: data.artisanCount,
         foundedYear: data.foundedYear,
-      });
+      };
+
+      const saved = user?.cooperativeId
+        ? await coopService.update(user.cooperativeId, payload)
+        : await coopService.create({
+            ...payload,
+            location: { city: data.cooperativeCity ?? "", region: "Souss-Massa" },
+            category: "other",
+          });
+
+      setCoop(saved);
+      await refreshAuth();
       toast.success("Cooperative profile updated!");
     } catch {
       toast.error("Could not update cooperative profile");
@@ -709,7 +725,14 @@ export default function CoopDashboard() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008]">Your Listings</h2>
               <button
-                onClick={() => setModalProduct("new")}
+                onClick={() => {
+                  if (!user?.cooperativeId && !coop?._id) {
+                    setActiveTab("settings");
+                    toast.error("Create your cooperative profile before adding products");
+                    return;
+                  }
+                  setModalProduct("new");
+                }}
                 className="flex items-center gap-2 bg-[#E76F51] text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:bg-[#d46043] transition-colors shadow-[0_4px_16px_rgba(231,111,81,0.3)]"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -737,7 +760,14 @@ export default function CoopDashboard() {
                 <h3 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008] mb-2">No products yet</h3>
                 <p className="text-[#9a8a7a] mb-6">List your first product to start selling on The Souk.</p>
                 <button
-                  onClick={() => setModalProduct("new")}
+                  onClick={() => {
+                    if (!user?.cooperativeId && !coop?._id) {
+                      setActiveTab("settings");
+                      toast.error("Create your cooperative profile before adding products");
+                      return;
+                    }
+                    setModalProduct("new");
+                  }}
                   className="inline-block bg-[#E76F51] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#d46043] transition-colors"
                 >
                   Add your first product

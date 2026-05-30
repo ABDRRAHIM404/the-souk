@@ -13,6 +13,9 @@ export interface ICooperative extends Document {
   photos: string[];
   verified: boolean;
   followers: mongoose.Types.ObjectId[];
+  impactStatement: string;
+  artisanCount: number;
+  foundedYear?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +38,9 @@ const CooperativeSchema = new Schema<ICooperative>(
     photos: [{ type: String }],
     verified: { type: Boolean, default: false },
     followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    impactStatement: { type: String, default: "" },
+    artisanCount: { type: Number, default: 0, min: 0 },
+    foundedYear: { type: Number, min: 1900 },
   },
   { timestamps: true }
 );

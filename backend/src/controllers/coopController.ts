@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Cooperative from "../models/Cooperative";
 import Product from "../models/Product";
+import User from "../models/User";
 import { AuthRequest } from "../middleware/authMiddleware";
 
 const serializeCoop = (coop: any) => ({
@@ -38,7 +39,15 @@ export const getCoopById = async (req: Request, res: Response): Promise<void> =>
 
 export const createCoop = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const existing = await Cooperative.findOne({ owner: req.user!._id });
+    if (existing) {
+      await User.updateOne({ _id: req.user!._id }, { cooperativeId: existing._id });
+      res.status(200).json({ success: true, data: serializeCoop(existing.toObject()) });
+      return;
+    }
+
     const coop = await Cooperative.create({ ...req.body, owner: req.user!._id });
+    await User.updateOne({ _id: req.user!._id }, { cooperativeId: coop._id });
     res.status(201).json({ success: true, data: serializeCoop(coop.toObject()) });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: (error as Error).message });
