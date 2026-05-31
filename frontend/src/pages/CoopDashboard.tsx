@@ -133,6 +133,15 @@ function formatPrice(price: number | undefined) {
   })}`;
 }
 
+function formatDateShort(value?: string) {
+  if (!value) return "Not updated yet";
+  return new Date(value).toLocaleDateString("en-GB", { month: "short", day: "numeric" });
+}
+
+function getStockPercent(stock: number | undefined) {
+  return Math.min(((stock ?? 0) / 25) * 100, 100);
+}
+
 function getProductStatus(product: Product) {
   if (product.stock === 0 || product.isAvailable === false) return { label: "Out of stock", tone: "danger" as const };
   if ((product.stock ?? 0) <= 5) return { label: "Low stock", tone: "warning" as const };
@@ -558,7 +567,9 @@ function ProductMobileCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h3 className="truncate text-sm font-bold text-[#1a1008]">{product.name}</h3>
-              <p className="mt-1 text-xs font-medium text-[#8c7b6f]">{formatCategory(product.category)}</p>
+              <p className="mt-1 text-xs font-medium text-[#8c7b6f]">
+                {formatCategory(product.category)}{product.origin ? ` · ${product.origin}` : ""}
+              </p>
             </div>
             <StatusChip label={status.label} tone={status.tone} />
           </div>
@@ -570,6 +581,9 @@ function ProductMobileCard({
             <div className="rounded-lg bg-[#fbf7f2] px-2.5 py-2">
               <p className="text-xs text-[#8c7b6f]">Stock</p>
               <p className="font-semibold text-[#1a1008]">{product.stock ?? 0}</p>
+              <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#eadfd5]">
+                <div className="h-full rounded-full bg-[#2A9D8F]" style={{ width: `${getStockPercent(product.stock)}%` }} />
+              </div>
             </div>
             <div className="rounded-lg bg-[#fbf7f2] px-2.5 py-2">
               <p className="text-xs text-[#8c7b6f]">Trade</p>
@@ -874,34 +888,67 @@ export default function CoopDashboard() {
       </div>
 
       <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7">
-        {/* Tabs */}
-        <div className="sticky top-[68px] z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur">
-          <div className="grid min-w-max grid-cols-3 gap-1 sm:min-w-0">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex min-h-12 items-center justify-between gap-4 rounded-lg px-3 text-left transition-colors sm:px-4 ${
-                  activeTab === tab.id
-                    ? "bg-[#1a1008] text-white"
-                    : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
-                }`}
-              >
-                <span>
-                  <span className="block text-sm font-semibold">{tab.label}</span>
-                  <span className={`hidden text-xs sm:block ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>
-                    {tab.description}
+        <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+          {/* Desktop navigation */}
+          <aside className="sticky top-22 hidden lg:block">
+            <div className={`${panelClass} overflow-hidden p-1`}>
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-3 text-left transition-colors ${
+                    activeTab === tab.id
+                      ? "bg-[#1a1008] text-white"
+                      : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
+                  }`}
+                  type="button"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{tab.label}</span>
+                    <span className={`block truncate text-xs ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>
+                      {tab.description}
+                    </span>
                   </span>
-                </span>
-                {tab.count !== null && tab.count > 0 && (
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${activeTab === tab.id ? "bg-white/15 text-white" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+                  {tab.count !== null && tab.count > 0 && (
+                    <span className={`rounded-full px-2 py-0.5 text-xs ${activeTab === tab.id ? "bg-white/15 text-white" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </aside>
+
+          <div className="min-w-0 lg:col-start-2">
+            {/* Mobile tabs */}
+            <div className="sticky top-17 z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur lg:hidden">
+              <div className="grid min-w-max grid-cols-3 gap-1 sm:min-w-0">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex min-h-12 items-center justify-between gap-4 rounded-lg px-3 text-left transition-colors sm:px-4 ${
+                      activeTab === tab.id
+                        ? "bg-[#1a1008] text-white"
+                        : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
+                    }`}
+                    type="button"
+                  >
+                    <span>
+                      <span className="block text-sm font-semibold">{tab.label}</span>
+                      <span className={`hidden text-xs sm:block ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>
+                        {tab.description}
+                      </span>
+                    </span>
+                    {tab.count !== null && tab.count > 0 && (
+                      <span className={`rounded-full px-2 py-0.5 text-xs ${activeTab === tab.id ? "bg-white/15 text-white" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
 
         {/* ── Products Tab ──────────────────────────────────────────────────── */}
         {activeTab === "products" && (
@@ -977,9 +1024,9 @@ export default function CoopDashboard() {
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-[#1a1008]">{product.name}</p>
-                        {(product.fairTradeCertified || product.isFairTrade) && (
-                          <span className="text-xs font-semibold text-[#19786d]">Fair trade</span>
-                        )}
+                        <p className="mt-0.5 truncate text-xs font-medium text-[#8c7b6f]">
+                          {product.origin || "No origin set"} · Updated {formatDateShort(product.updatedAt)}
+                        </p>
                       </div>
                     </div>
 
@@ -990,9 +1037,14 @@ export default function CoopDashboard() {
                     <span className="text-sm font-semibold text-[#1a1008]">{formatPrice(product.price)}</span>
 
                     {/* Stock */}
-                    <div className="flex items-center gap-2">
-                      <StatusChip label={status.label} tone={status.tone} />
-                      <span className="text-xs font-medium text-[#8c7b6f]">{product.stock ?? 0} units</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <StatusChip label={status.label} tone={status.tone} />
+                        <span className="text-xs font-medium text-[#8c7b6f]">{product.stock ?? 0} units</span>
+                      </div>
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#eadfd5]">
+                        <div className="h-full rounded-full bg-[#2A9D8F]" style={{ width: `${getStockPercent(product.stock)}%` }} />
+                      </div>
                     </div>
 
                     {/* Actions */}
@@ -1217,6 +1269,8 @@ export default function CoopDashboard() {
             </div>
           </FadeSection>
         )}
+          </div>
+        </div>
       </main>
 
       {/* ── Modals ─────────────────────────────────────────────────────────── */}

@@ -131,7 +131,7 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className={`${panelClass} flex min-h-62.5 flex-col items-center justify-center px-6 py-10 text-center`}>
+    <div className={`${panelClass} flex min-h-[250px] flex-col items-center justify-center px-6 py-10 text-center`}>
       <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-[#eadfd5] bg-[#faf6f2] text-[#7b6a5e]">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M4 7h16M6 7v12h12V7M9 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -166,7 +166,7 @@ function LoadingCards({ variant }: { variant: "grid" | "list" }) {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className={`${panelClass} overflow-hidden`}>
-          <div className="aspect-4/3 animate-pulse bg-[#f2ebe4]" />
+          <div className="aspect-[4/3] animate-pulse bg-[#f2ebe4]" />
           <div className="space-y-2 p-4">
             <div className="h-3 w-1/2 animate-pulse rounded bg-[#f2ebe4]" />
             <div className="h-4 w-3/4 animate-pulse rounded bg-[#f2ebe4]" />
@@ -182,7 +182,7 @@ function WishlistCard({ product, onRemove }: { product: Product; onRemove: (id: 
   return (
     <article className={`${panelClass} group overflow-hidden transition-colors hover:border-[#e1d5ca]`}>
       <Link to={`/products/${product._id}`} className="block">
-        <div className="relative aspect-4/3 overflow-hidden bg-[#faf6f2]">
+        <div className="relative aspect-[4/3] overflow-hidden bg-[#faf6f2]">
           {product.images?.[0] ? (
             <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           ) : (
@@ -299,7 +299,7 @@ function OrderCard({ order }: { order: Order }) {
             </p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-2 text-sm sm:min-w-60">
+        <div className="grid grid-cols-2 gap-2 text-sm sm:min-w-[240px]">
           <div className="rounded-lg bg-[#fbf7f2] px-3 py-2">
             <p className="text-xs text-[#8c7b6f]">Items</p>
             <p className="font-semibold text-[#1a1008]">{itemCount}</p>
@@ -429,6 +429,9 @@ export default function TouristDashboard() {
 
   const deliveredOrders = orders.filter((order) => order.status === "delivered").length;
   const pendingOrders = orders.filter((order) => order.status === "pending" || order.status === "confirmed").length;
+  const latestOrderDate = orders[0]?.createdAt
+    ? new Date(orders[0].createdAt).toLocaleDateString("en-GB", { month: "short", day: "numeric" })
+    : "New";
 
   const tabs = [
     { id: "wishlist" as const, label: "Wishlist", description: "Saved products", count: wishlist.length },
@@ -461,12 +464,12 @@ export default function TouristDashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-130">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[520px]">
               {[
                 { label: "Saved", value: wishlist.length },
                 { label: "Orders", value: orders.length },
                 { label: "In progress", value: pendingOrders },
-                { label: "Delivered", value: deliveredOrders },
+                { label: deliveredOrders > 0 ? "Delivered" : "Latest order", value: deliveredOrders > 0 ? deliveredOrders : latestOrderDate },
               ].map((stat) => (
                 <div key={stat.label} className="rounded-lg border border-[#eadfd5] bg-white px-3 py-2.5">
                   <p className="text-lg font-bold leading-none text-[#1a1008]">{stat.value}</p>
@@ -479,32 +482,61 @@ export default function TouristDashboard() {
       </div>
 
       <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7">
-        <div className="sticky top-[68px] z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur">
-          <div className="grid min-w-170 grid-cols-4 gap-1 sm:min-w-0">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex min-h-12 items-center justify-between gap-3 rounded-lg px-3 text-left transition-colors sm:px-4 ${
-                  activeTab === tab.id
-                    ? "bg-[#1a1008] text-white"
-                    : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
-                }`}
-                type="button"
-              >
-                <span>
-                  <span className="block text-sm font-semibold">{tab.label}</span>
-                  <span className={`hidden text-xs md:block ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>{tab.description}</span>
-                </span>
-                {tab.count !== null && tab.count > 0 && (
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${activeTab === tab.id ? "bg-white/15 text-white" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
-                    {tab.count}
+        <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+          <aside className="sticky top-[88px] hidden lg:block">
+            <div className={`${panelClass} overflow-hidden p-1`}>
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-3 text-left transition-colors ${
+                    activeTab === tab.id
+                      ? "bg-[#1a1008] text-white"
+                      : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
+                  }`}
+                  type="button"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{tab.label}</span>
+                    <span className={`block truncate text-xs ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>{tab.description}</span>
                   </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+                  {tab.count !== null && tab.count > 0 && (
+                    <span className={`rounded-full px-2 py-0.5 text-xs ${activeTab === tab.id ? "bg-white/15 text-white" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </aside>
+
+          <div className="min-w-0 lg:col-start-2">
+            <div className="sticky top-[68px] z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur lg:hidden">
+              <div className="grid min-w-[680px] grid-cols-4 gap-1 sm:min-w-0">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex min-h-12 items-center justify-between gap-3 rounded-lg px-3 text-left transition-colors sm:px-4 ${
+                      activeTab === tab.id
+                        ? "bg-[#1a1008] text-white"
+                        : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
+                    }`}
+                    type="button"
+                  >
+                    <span>
+                      <span className="block text-sm font-semibold">{tab.label}</span>
+                      <span className={`hidden text-xs md:block ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>{tab.description}</span>
+                    </span>
+                    {tab.count !== null && tab.count > 0 && (
+                      <span className={`rounded-full px-2 py-0.5 text-xs ${activeTab === tab.id ? "bg-white/15 text-white" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
 
         {activeTab === "wishlist" && (
           <FadeSection>
@@ -648,6 +680,8 @@ export default function TouristDashboard() {
             </div>
           </FadeSection>
         )}
+          </div>
+        </div>
       </main>
 
       <Footer />
