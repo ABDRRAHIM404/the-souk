@@ -191,7 +191,7 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className={`${panelClass} flex min-h-[260px] flex-col items-center justify-center px-6 py-10 text-center`}>
+    <div className={`${panelClass} flex min-h-65 flex-col items-center justify-center px-6 py-10 text-center`}>
       <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-[#eadfd5] bg-[#faf6f2] text-[#7b6a5e]">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
           <path d="M4 7h16M6 7v12h12V7M9 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -820,7 +820,7 @@ export default function CoopDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFCF8]">
+    <div className="min-h-screen bg-[#FFFCF8] pt-18">
       <Navbar />
 
       {/* Header */}
@@ -856,7 +856,7 @@ export default function CoopDashboard() {
             </div>
 
             {/* Quick stats */}
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[520px]">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-130">
               {[
                 { label: "Active listings", value: activeProducts },
                 { label: "Units in stock", value: totalStock },
@@ -875,7 +875,7 @@ export default function CoopDashboard() {
 
       <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7">
         {/* Tabs */}
-        <div className="sticky top-[72px] z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur">
+        <div className="sticky top-18 z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur">
           <div className="grid min-w-max grid-cols-3 gap-1 sm:min-w-0">
             {tabs.map((tab) => (
               <button
