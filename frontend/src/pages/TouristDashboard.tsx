@@ -438,7 +438,7 @@ export default function TouristDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFCF8]">
+    <div className="min-h-screen bg-[#FFFCF8] pt-[68px]">
       <Navbar />
 
       <div className="mt-[68px] border-b border-[#eadfd5] bg-[#fbf7f2]">

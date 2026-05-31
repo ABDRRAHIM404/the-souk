@@ -820,7 +820,7 @@ export default function CoopDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFCF8]">
+    <div className="min-h-screen bg-[#FFFCF8] pt-[68px]">
       <Navbar />
 
       {/* Header */}
