@@ -824,7 +824,7 @@ export default function CoopDashboard() {
       <Navbar />
 
       {/* Header */}
-      <div className="mt-18 border-b border-[#eadfd5] bg-[#fbf7f2]">
+      <div className="mt-[68px] border-b border-[#eadfd5] bg-[#fbf7f2]">
         <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 items-start gap-4">
@@ -875,7 +875,7 @@ export default function CoopDashboard() {
 
       <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7">
         {/* Tabs */}
-        <div className="sticky top-18 z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur">
+        <div className="sticky top-[68px] z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur">
           <div className="grid min-w-max grid-cols-3 gap-1 sm:min-w-0">
             {tabs.map((tab) => (
               <button

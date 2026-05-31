@@ -32,10 +32,11 @@ export default function Navbar() {
     user?.role === "coop_owner" ? "/dashboard/coop" : "/dashboard/tourist";
 
   const menuOpen = menuOpenPath === location.pathname;
+  const isDashboard = location.pathname.startsWith("/dashboard");
+  const isOpaque = scrolled || isDashboard;
 
   return (
     <nav
-      
       style={{
         position: "fixed",
         top: 0,
@@ -43,7 +44,7 @@ export default function Navbar() {
         right: 0,
         zIndex: 100,
         transition: "all 0.3s ease",
-        ...(scrolled
+        ...(isOpaque
           ? {
               backdropFilter: "blur(16px)",
               WebkitBackdropFilter: "blur(16px)",
