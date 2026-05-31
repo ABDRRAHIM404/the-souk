@@ -820,11 +820,11 @@ export default function CoopDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFCF8] pt-[68px]">
+    <div className="min-h-screen bg-[#FFFCF8]" style={{ paddingTop: 68 }}>
       <Navbar />
 
       {/* Header */}
-      <div className="mt-[68px] border-b border-[#eadfd5] bg-[#fbf7f2]">
+      <div className="border-b border-[#eadfd5] bg-[#fbf7f2]">
         <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 items-start gap-4">
