@@ -102,7 +102,7 @@ function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
 function Field({ label, error, children, hint }: { label: string; error?: string; children: React.ReactNode; hint?: string }) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-[#1a1008] mb-1.5">{label}</label>
+      <label className="mb-1.5 block text-sm font-semibold text-[#1a1008]">{label}</label>
       {hint && <p className="text-xs text-[#9a8a7a] mb-1.5">{hint}</p>}
       {children}
       {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
@@ -111,10 +111,98 @@ function Field({ label, error, children, hint }: { label: string; error?: string
 }
 
 const inputClass =
-  "w-full px-4 py-3 rounded-xl border border-[#f0e8e0] bg-white text-[#1a1008] text-sm placeholder:text-[#c4b8ae] focus:outline-none focus:ring-2 focus:ring-[#E76F51]/30 focus:border-[#E76F51] transition-all";
+  "w-full rounded-lg border border-[#e8ddd3] bg-white px-3.5 py-2.5 text-sm text-[#1a1008] placeholder:text-[#b7a99d] transition-all focus:border-[#2A9D8F] focus:outline-none focus:ring-2 focus:ring-[#2A9D8F]/20";
 
 const textareaClass =
-  "w-full px-4 py-3 rounded-xl border border-[#f0e8e0] bg-white text-[#1a1008] text-sm placeholder:text-[#c4b8ae] focus:outline-none focus:ring-2 focus:ring-[#E76F51]/30 focus:border-[#E76F51] transition-all resize-none";
+  "w-full resize-none rounded-lg border border-[#e8ddd3] bg-white px-3.5 py-2.5 text-sm text-[#1a1008] placeholder:text-[#b7a99d] transition-all focus:border-[#2A9D8F] focus:outline-none focus:ring-2 focus:ring-[#2A9D8F]/20";
+
+const panelClass = "rounded-xl border border-[#eadfd5] bg-white shadow-[0_1px_2px_rgba(26,16,8,0.04)]";
+const primaryButtonClass =
+  "inline-flex items-center justify-center gap-2 rounded-lg bg-[#1a1008] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#332216] disabled:opacity-60";
+const secondaryButtonClass =
+  "inline-flex items-center justify-center gap-2 rounded-lg border border-[#e8ddd3] bg-white px-4 py-2.5 text-sm font-semibold text-[#5f5046] transition-colors hover:bg-[#faf6f2]";
+
+function formatCategory(category: string) {
+  return category.charAt(0).toUpperCase() + category.slice(1);
+}
+
+function formatPrice(price: number | undefined) {
+  return `MAD ${(price ?? 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function getProductStatus(product: Product) {
+  if (product.stock === 0 || product.isAvailable === false) return { label: "Out of stock", tone: "danger" as const };
+  if ((product.stock ?? 0) <= 5) return { label: "Low stock", tone: "warning" as const };
+  return { label: "Active", tone: "success" as const };
+}
+
+function StatusChip({ label, tone }: { label: string; tone: "success" | "warning" | "danger" | "neutral" }) {
+  const tones = {
+    success: "border-[#b9dfd8] bg-[#edf8f6] text-[#19786d]",
+    warning: "border-[#ead9a2] bg-[#fff8e5] text-[#8b6417]",
+    danger: "border-[#f1c5bc] bg-[#fff0ed] text-[#b4442e]",
+    neutral: "border-[#e8ddd3] bg-[#faf6f2] text-[#6b5a4e]",
+  };
+
+  return (
+    <span className={`inline-flex h-6 shrink-0 items-center rounded-full border px-2.5 text-xs font-semibold ${tones[tone]}`}>
+      {label}
+    </span>
+  );
+}
+
+function LoadingRows() {
+  return (
+    <div className={`${panelClass} overflow-hidden`}>
+      <div className="hidden grid-cols-[minmax(220px,2fr)_0.8fr_0.8fr_1fr_auto] gap-4 border-b border-[#eadfd5] bg-[#fbf7f2] px-4 py-3 md:grid">
+        {["Product", "Category", "Price", "Inventory", ""].map((label) => (
+          <div key={label} className="h-3 w-20 animate-pulse rounded bg-[#eadfd5]" />
+        ))}
+      </div>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className={`grid gap-4 px-4 py-4 md:grid-cols-[minmax(220px,2fr)_0.8fr_0.8fr_1fr_auto] ${i < 4 ? "border-b border-[#f1e8df]" : ""}`}>
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 animate-pulse rounded-lg bg-[#f2ebe4]" />
+            <div className="space-y-2">
+              <div className="h-3.5 w-36 animate-pulse rounded bg-[#f2ebe4]" />
+              <div className="h-3 w-20 animate-pulse rounded bg-[#f6f0eb]" />
+            </div>
+          </div>
+          <div className="h-3.5 w-20 animate-pulse self-center rounded bg-[#f2ebe4]" />
+          <div className="h-3.5 w-20 animate-pulse self-center rounded bg-[#f2ebe4]" />
+          <div className="h-6 w-24 animate-pulse self-center rounded-full bg-[#f2ebe4]" />
+          <div className="h-8 w-16 animate-pulse self-center rounded-lg bg-[#f2ebe4]" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptyState({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className={`${panelClass} flex min-h-[260px] flex-col items-center justify-center px-6 py-10 text-center`}>
+      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-[#eadfd5] bg-[#faf6f2] text-[#7b6a5e]">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M4 7h16M6 7v12h12V7M9 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+      <h3 className="text-base font-bold text-[#1a1008]">{title}</h3>
+      <p className="mt-2 max-w-md text-sm leading-6 text-[#7b6a5e]">{description}</p>
+      {action && <div className="mt-5">{action}</div>}
+    </div>
+  );
+}
 
 // ─── Image Upload Zone ────────────────────────────────────────────────────────
 interface ImageUploadProps {
@@ -196,8 +284,8 @@ function ImageUploadZone({ existingImages, onFilesChange, onRemoveExisting }: Im
         onDragLeave={() => setDragging(false)}
         onDrop={(e) => { e.preventDefault(); setDragging(false); processFiles(e.dataTransfer.files); }}
         onClick={() => inputRef.current?.click()}
-        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
-          dragging ? "border-[#E76F51] bg-[#E76F51]/5" : "border-[#f0e8e0] hover:border-[#E76F51]/40 hover:bg-[#faf6f2]"
+        className={`cursor-pointer rounded-xl border border-dashed p-5 text-center transition-all ${
+          dragging ? "border-[#2A9D8F] bg-[#2A9D8F]/5" : "border-[#e3d7cc] hover:border-[#2A9D8F]/50 hover:bg-[#faf6f2]"
         }`}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="mx-auto mb-2 text-[#9a8a7a]">
@@ -316,24 +404,27 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-3 backdrop-blur-sm sm:p-4">
       <div
-        className="bg-[#FFFCF8] rounded-3xl w-full max-w-2xl my-8 shadow-2xl"
+        className="my-6 w-full max-w-2xl rounded-xl border border-[#eadfd5] bg-[#FFFCF8] shadow-[0_18px_50px_rgba(26,16,8,0.18)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#f0e8e0]">
-          <h2 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008]">
-            {isEdit ? "Edit Product" : "List New Product"}
-          </h2>
-          <button onClick={onClose} className="text-[#9a8a7a] hover:text-[#1a1008] transition-colors">
+        <div className="flex items-start justify-between gap-4 border-b border-[#eadfd5] px-5 py-4 sm:px-6">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Product management</p>
+            <h2 className="mt-1 text-xl font-bold text-[#1a1008]">
+              {isEdit ? "Edit product" : "List new product"}
+            </h2>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-2 text-[#8c7b6f] transition-colors hover:bg-[#f5eee7] hover:text-[#1a1008]" aria-label="Close product modal">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 p-5 sm:p-6">
           {/* Images */}
           <Field label="Product Images">
             <ImageUploadZone
@@ -354,7 +445,7 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
           </Field>
 
           {/* Category + Price row */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Category" error={errors.category?.message}>
               <select {...register("category")} className={inputClass}>
                 <option value="">Select category</option>
@@ -370,8 +461,8 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
           </div>
 
           {/* Price row */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="sm:col-span-2">
               <Field label="Price" error={errors.priceAmount?.message}>
                 <input {...register("priceAmount", { valueAsNumber: true })} type="number" min={0} step="0.01" className={inputClass} placeholder="0.00" />
               </Field>
@@ -412,14 +503,14 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
           </label>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-full border border-[#f0e8e0] text-[#6b5a4e] font-semibold text-sm hover:bg-[#faf6f2] transition-colors">
+          <div className="flex flex-col-reverse gap-3 border-t border-[#eadfd5] pt-5 sm:flex-row sm:justify-end">
+            <button type="button" onClick={onClose} className={secondaryButtonClass}>
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || uploading}
-              className="flex-1 py-3 rounded-full bg-[#E76F51] text-white font-semibold text-sm hover:bg-[#d46043] transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(231,111,81,0.3)]"
+              className={primaryButtonClass}
             >
               {(isSubmitting || uploading) ? (
                 <>
@@ -438,24 +529,87 @@ function ProductModal({ product, coopId, onClose, onSaved }: ProductModalProps) 
 }
 
 // ─── Delete Confirm Modal ─────────────────────────────────────────────────────
+function ProductMobileCard({
+  product,
+  onEdit,
+  onDelete,
+}: {
+  product: Product;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const status = getProductStatus(product);
+
+  return (
+    <article className={`${panelClass} p-3.5`}>
+      <div className="flex gap-3">
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[#f0e8e0] bg-[#faf6f2]">
+          {product.images?.[0] ? (
+            <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-[#b7a99d]">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="truncate text-sm font-bold text-[#1a1008]">{product.name}</h3>
+              <p className="mt-1 text-xs font-medium text-[#8c7b6f]">{formatCategory(product.category)}</p>
+            </div>
+            <StatusChip label={status.label} tone={status.tone} />
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+            <div className="rounded-lg bg-[#fbf7f2] px-2.5 py-2">
+              <p className="text-xs text-[#8c7b6f]">Price</p>
+              <p className="font-semibold text-[#1a1008]">{formatPrice(product.price)}</p>
+            </div>
+            <div className="rounded-lg bg-[#fbf7f2] px-2.5 py-2">
+              <p className="text-xs text-[#8c7b6f]">Stock</p>
+              <p className="font-semibold text-[#1a1008]">{product.stock ?? 0}</p>
+            </div>
+            <div className="rounded-lg bg-[#fbf7f2] px-2.5 py-2">
+              <p className="text-xs text-[#8c7b6f]">Trade</p>
+              <p className="truncate font-semibold text-[#1a1008]">
+                {(product.fairTradeCertified || product.isFairTrade) ? "Fair" : "Standard"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 flex gap-2">
+        <button onClick={onEdit} className={`${secondaryButtonClass} flex-1`} type="button">
+          Edit
+        </button>
+        <button onClick={onDelete} className="inline-flex flex-1 items-center justify-center rounded-lg border border-red-100 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50" type="button">
+          Delete
+        </button>
+      </div>
+    </article>
+  );
+}
+
 function DeleteConfirmModal({ product, onConfirm, onCancel }: { product: Product; onConfirm: () => void; onCancel: () => void }) {
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#FFFCF8] rounded-3xl w-full max-w-sm p-8 shadow-2xl text-center">
-        <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-xl border border-[#eadfd5] bg-[#FFFCF8] p-6 text-center shadow-[0_18px_50px_rgba(26,16,8,0.18)]">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-500">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
         </div>
-        <h3 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008] mb-2">Delete Product?</h3>
+        <h3 className="mb-2 text-lg font-bold text-[#1a1008]">Delete product?</h3>
         <p className="text-[#6b5a4e] text-sm mb-6">
           <span className="font-semibold">"{product.name}"</span> will be permanently removed from the marketplace.
         </p>
         <div className="flex gap-3">
-          <button onClick={onCancel} className="flex-1 py-3 rounded-full border border-[#f0e8e0] text-[#6b5a4e] font-semibold text-sm hover:bg-[#faf6f2] transition-colors">
+          <button onClick={onCancel} className={`${secondaryButtonClass} flex-1`}>
             Cancel
           </button>
-          <button onClick={onConfirm} className="flex-1 py-3 rounded-full bg-red-500 text-white font-semibold text-sm hover:bg-red-600 transition-colors">
+          <button onClick={onConfirm} className="inline-flex flex-1 items-center justify-center rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-600">
             Delete
           </button>
         </div>
@@ -644,14 +798,25 @@ export default function CoopDashboard() {
 
   // Summary stats
   const totalStock = products.reduce((sum, p) => sum + (p.stock ?? 0), 0);
+  const activeProducts = products.filter((p) => p.stock > 0 && p.isAvailable !== false).length;
+  const lowStockProducts = products.filter((p) => p.stock > 0 && p.stock <= 5).length;
   const avgRating = reviews.length
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : null;
+  const coopId = user?.cooperativeId ?? coop?._id;
+  const openNewProduct = () => {
+    if (!coopId) {
+      setActiveTab("settings");
+      toast.error("Create your cooperative profile before adding products");
+      return;
+    }
+    setModalProduct("new");
+  };
 
   const tabs = [
-    { id: "products" as const, label: "Products", count: products.length },
-    { id: "reviews" as const, label: "Reviews", count: reviews.length },
-    { id: "settings" as const, label: "Settings", count: null },
+    { id: "products" as const, label: "Products", description: "Inventory and listings", count: products.length },
+    { id: "reviews" as const, label: "Reviews", description: "Customer feedback", count: reviews.length },
+    { id: "settings" as const, label: "Settings", description: "Storefront and access", count: null },
   ];
 
   return (
@@ -659,34 +824,48 @@ export default function CoopDashboard() {
       <Navbar />
 
       {/* Header */}
-      <div className="bg-linear-to-br from-[#2A9D8F]/8 via-[#FFFCF8] to-[#E9C46A]/5 border-b border-[#f0e8e0]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-5">
-              <div className="w-16 h-16 rounded-[14px] bg-linear-to-br from-[#2A9D8F] to-[#E9C46A] flex items-center justify-center text-white font-['Playfair_Display'] font-bold text-2xl shrink-0">
+      <div className="border-b border-[#eadfd5] bg-[#fbf7f2]">
+        <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#1a1008] text-lg font-bold text-white">
                 {coop?.name?.charAt(0) ?? user?.name?.charAt(0) ?? "C"}
               </div>
-              <div>
-                <h1 className="font-['Playfair_Display'] font-bold text-2xl md:text-3xl text-[#1a1008]">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Cooperative dashboard</p>
+                <h1 className="mt-1 truncate text-2xl font-bold text-[#1a1008] md:text-3xl">
                   {coop?.name ?? user?.name ?? "Cooperative"}
                 </h1>
-                <p className="text-[#9a8a7a] text-sm mt-0.5">
-                  {coop?.city ? `📍 ${coop.city}, Morocco` : "Cooperative dashboard"}
+                <p className="mt-1 text-sm leading-6 text-[#7b6a5e]">
+                  {coop?.city ? `${coop.city}, Morocco` : "Set up your profile to help shoppers find your cooperative."}
                 </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button onClick={openNewProduct} className={primaryButtonClass} type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                    Add product
+                  </button>
+                  {coopId && (
+                    <a href={`/coops/${coopId}`} className={secondaryButtonClass}>
+                      View storefront
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Quick stats */}
-            <div className="flex gap-4 flex-wrap">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[520px]">
               {[
-                { label: "Products", value: products.length },
-                { label: "In Stock", value: totalStock },
-                { label: "Reviews", value: reviews.length },
-                ...(avgRating !== null ? [{ label: "Avg Rating", value: avgRating.toFixed(1) }] : []),
+                { label: "Active listings", value: activeProducts },
+                { label: "Units in stock", value: totalStock },
+                { label: "Low stock", value: lowStockProducts },
+                { label: "Avg rating", value: avgRating !== null ? avgRating.toFixed(1) : "New" },
               ].map((stat) => (
-                <div key={stat.label} className="bg-white rounded-[14px] px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] text-center min-w-17.5">
-                  <p className="text-xl font-['Playfair_Display'] font-bold text-[#1a1008]">{stat.value}</p>
-                  <p className="text-xs text-[#9a8a7a] mt-0.5">{stat.label}</p>
+                <div key={stat.label} className="rounded-lg border border-[#eadfd5] bg-white px-3 py-2.5">
+                  <p className="text-lg font-bold leading-none text-[#1a1008]">{stat.value}</p>
+                  <p className="mt-1 text-xs font-medium text-[#8c7b6f]">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -694,23 +873,28 @@ export default function CoopDashboard() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7">
         {/* Tabs */}
-        <div className="border-b border-[#f0e8e0] mb-8">
-          <div className="flex gap-0">
+        <div className="sticky top-[72px] z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur">
+          <div className="grid min-w-max grid-cols-3 gap-1 sm:min-w-0">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-all border-b-2 -mb-px ${
+                className={`flex min-h-12 items-center justify-between gap-4 rounded-lg px-3 text-left transition-colors sm:px-4 ${
                   activeTab === tab.id
-                    ? "border-[#2A9D8F] text-[#2A9D8F]"
-                    : "border-transparent text-[#9a8a7a] hover:text-[#6b5a4e]"
+                    ? "bg-[#1a1008] text-white"
+                    : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
                 }`}
               >
-                {tab.label}
+                <span>
+                  <span className="block text-sm font-semibold">{tab.label}</span>
+                  <span className={`hidden text-xs sm:block ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>
+                    {tab.description}
+                  </span>
+                </span>
                 {tab.count !== null && tab.count > 0 && (
-                  <span className="bg-[#f0e8e0] text-[#6b5a4e] text-xs px-2 py-0.5 rounded-full">
+                  <span className={`rounded-full px-2 py-0.5 text-xs ${activeTab === tab.id ? "bg-white/15 text-white" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
                     {tab.count}
                   </span>
                 )}
@@ -722,115 +906,100 @@ export default function CoopDashboard() {
         {/* ── Products Tab ──────────────────────────────────────────────────── */}
         {activeTab === "products" && (
           <FadeSection>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008]">Your Listings</h2>
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Inventory</p>
+                <h2 className="mt-1 text-xl font-bold text-[#1a1008]">Product listings</h2>
+                <p className="mt-1 text-sm text-[#7b6a5e]">Manage listing quality, pricing, and stock from one place.</p>
+              </div>
               <button
-                onClick={() => {
-                  if (!user?.cooperativeId && !coop?._id) {
-                    setActiveTab("settings");
-                    toast.error("Create your cooperative profile before adding products");
-                    return;
-                  }
-                  setModalProduct("new");
-                }}
-                className="flex items-center gap-2 bg-[#E76F51] text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:bg-[#d46043] transition-colors shadow-[0_4px_16px_rgba(231,111,81,0.3)]"
+                onClick={openNewProduct}
+                className={primaryButtonClass}
+                type="button"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
-                Add Product
+                Add product
               </button>
             </div>
 
             {loadingProducts ? (
-              <div className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-2xl h-20 animate-pulse" />
-                ))}
-              </div>
+              <LoadingRows />
             ) : products.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#f0e8e0] flex items-center justify-center">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[#E76F51]">
-                    <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" stroke="currentColor" strokeWidth="1.5"/>
-                    <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    <path d="M12 12v4M10 14h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                </div>
-                <h3 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008] mb-2">No products yet</h3>
-                <p className="text-[#9a8a7a] mb-6">List your first product to start selling on The Souk.</p>
-                <button
-                  onClick={() => {
-                    if (!user?.cooperativeId && !coop?._id) {
-                      setActiveTab("settings");
-                      toast.error("Create your cooperative profile before adding products");
-                      return;
-                    }
-                    setModalProduct("new");
-                  }}
-                  className="inline-block bg-[#E76F51] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#d46043] transition-colors"
-                >
-                  Add your first product
-                </button>
-              </div>
+              <EmptyState
+                title="No products listed"
+                description="Add your first product with price, stock, materials, origin, and images so shoppers can buy from your cooperative."
+                action={
+                  <button
+                    onClick={openNewProduct}
+                    className={primaryButtonClass}
+                    type="button"
+                  >
+                    Add first product
+                  </button>
+                }
+              />
             ) : (
-              <div className="bg-white rounded-[20px] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.06)] mb-12">
+              <>
+              <div className={`${panelClass} mb-12 hidden overflow-hidden md:block`}>
                 {/* Table header */}
-                <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-[#f0e8e0] text-xs font-semibold text-[#9a8a7a] uppercase tracking-wide">
+                <div className="grid grid-cols-[minmax(220px,2fr)_0.8fr_0.8fr_1fr_auto] gap-4 border-b border-[#eadfd5] bg-[#fbf7f2] px-4 py-3 text-xs font-bold uppercase tracking-[0.08em] text-[#8c7b6f]">
                   <span>Product</span>
                   <span>Category</span>
                   <span>Price</span>
-                  <span>Stock</span>
-                  <span />
+                  <span>Inventory</span>
+                  <span className="text-right">Actions</span>
                 </div>
 
-                {products.map((product, idx) => (
+                {products.map((product, idx) => {
+                  const status = getProductStatus(product);
+
+                  return (
                   <div
                     key={product._id}
-                    className={`grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 items-center px-5 py-4 ${
-                      idx < products.length - 1 ? "border-b border-[#f0e8e0]" : ""
-                    } hover:bg-[#faf6f2] transition-colors`}
+                    className={`grid grid-cols-[minmax(220px,2fr)_0.8fr_0.8fr_1fr_auto] items-center gap-4 px-4 py-3.5 ${
+                      idx < products.length - 1 ? "border-b border-[#f1e8df]" : ""
+                    } transition-colors hover:bg-[#faf6f2]`}
                   >
                     {/* Product name + image */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#faf6f2] shrink-0">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-[#faf6f2]">
                         {product.images?.[0] ? (
-                          <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                          <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="opacity-30">
-                              <rect x="3" y="3" width="18" height="18" rx="3" stroke="#6b5a4e" strokeWidth="1.5" />
+                          <div className="flex h-full w-full items-center justify-center text-[#b7a99d]">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" />
                             </svg>
                           </div>
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[#1a1008] truncate">{product.name}</p>
-                        {product.isFairTrade && (
-                          <span className="text-[10px] text-[#2A9D8F] font-bold uppercase tracking-wide">Fair Trade</span>
+                        <p className="truncate text-sm font-bold text-[#1a1008]">{product.name}</p>
+                        {(product.fairTradeCertified || product.isFairTrade) && (
+                          <span className="text-xs font-semibold text-[#19786d]">Fair trade</span>
                         )}
                       </div>
                     </div>
 
                     {/* Category */}
-                    <span className="text-sm text-[#6b5a4e] capitalize truncate">{product.category}</span>
+                    <span className="truncate text-sm font-medium text-[#6b5a4e]">{formatCategory(product.category)}</span>
 
                     {/* Price */}
-                    <span className="text-sm font-semibold text-[#E76F51]">
-                      MAD {(product.price as number).toFixed(2)}
-                    </span>
+                    <span className="text-sm font-semibold text-[#1a1008]">{formatPrice(product.price)}</span>
 
                     {/* Stock */}
-                    <span className={`text-sm font-semibold ${product.stock === 0 ? "text-red-500" : "text-[#1a1008]"}`}>
-                      {product.stock ?? "—"}
-                      {product.stock === 0 && <span className="text-xs font-normal text-red-400 ml-1">Out</span>}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <StatusChip label={status.label} tone={status.tone} />
+                      <span className="text-xs font-medium text-[#8c7b6f]">{product.stock ?? 0} units</span>
+                    </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => setModalProduct(product)}
-                        className="p-2 text-[#9a8a7a] hover:text-[#E76F51] hover:bg-[#E76F51]/5 rounded-lg transition-colors"
+                        className="rounded-lg p-2 text-[#8c7b6f] transition-colors hover:bg-[#f5eee7] hover:text-[#1a1008]"
                         aria-label="Edit"
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -839,7 +1008,7 @@ export default function CoopDashboard() {
                       </button>
                       <button
                         onClick={() => setDeleteTarget(product)}
-                        className="p-2 text-[#9a8a7a] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="rounded-lg p-2 text-[#8c7b6f] transition-colors hover:bg-red-50 hover:text-red-500"
                         aria-label="Delete"
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -848,8 +1017,20 @@ export default function CoopDashboard() {
                       </button>
                     </div>
                   </div>
+                );
+                })}
+              </div>
+              <div className="space-y-3 pb-10 md:hidden">
+                {products.map((product) => (
+                  <ProductMobileCard
+                    key={product._id}
+                    product={product}
+                    onEdit={() => setModalProduct(product)}
+                    onDelete={() => setDeleteTarget(product)}
+                  />
                 ))}
               </div>
+              </>
             )}
           </FadeSection>
         )}
@@ -857,30 +1038,29 @@ export default function CoopDashboard() {
         {/* ── Reviews Tab ──────────────────────────────────────────────────── */}
         {activeTab === "reviews" && (
           <FadeSection>
+            <div className="mb-4">
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Feedback</p>
+              <h2 className="mt-1 text-xl font-bold text-[#1a1008]">Customer reviews</h2>
+              <p className="mt-1 text-sm text-[#7b6a5e]">Monitor product sentiment and shopper confidence.</p>
+            </div>
             {loadingReviews ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-[20px] h-24 animate-pulse" />
+                  <div key={i} className={`${panelClass} h-24 animate-pulse bg-[#f6f0eb]`} />
                 ))}
               </div>
             ) : reviews.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#f0e8e0] flex items-center justify-center">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[#E76F51]">
-                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M8 10h8M8 13h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                </div>
-                <h3 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008] mb-2">No reviews yet</h3>
-                <p className="text-[#9a8a7a]">Reviews left by customers on your products will appear here.</p>
-              </div>
+              <EmptyState
+                title="No customer reviews yet"
+                description="Reviews from product buyers will appear here with ratings, comments, dates, and product context."
+              />
             ) : (
               <div>
                 {/* Summary */}
                 {avgRating !== null && (
-                  <div className="flex items-center gap-4 mb-6 bg-white rounded-[20px] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.06)] w-fit">
+                  <div className={`${panelClass} mb-5 flex w-full max-w-md items-center gap-4 p-4`}>
                     <div className="text-center">
-                      <p className="text-4xl font-['Playfair_Display'] font-bold text-[#1a1008]">{avgRating.toFixed(1)}</p>
+                      <p className="text-3xl font-bold text-[#1a1008]">{avgRating.toFixed(1)}</p>
                       <StarRating rating={avgRating} size={18} />
                       <p className="text-xs text-[#9a8a7a] mt-1">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p>
                     </div>
@@ -902,12 +1082,12 @@ export default function CoopDashboard() {
                   </div>
                 )}
 
-                <div className="space-y-4 pb-12">
+                <div className="space-y-3 pb-12">
                   {reviews.map((review) => (
-                    <div key={review._id} className="bg-white rounded-[20px] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                    <div key={review._id} className={`${panelClass} p-4`}>
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#E76F51] to-[#E9C46A] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1a1008] text-sm font-bold text-white">
                             {review.userName?.charAt(0).toUpperCase() ?? "?"}
                           </div>
                           <div>
@@ -936,90 +1116,108 @@ export default function CoopDashboard() {
         {/* ── Settings Tab ─────────────────────────────────────────────────── */}
         {activeTab === "settings" && (
           <FadeSection>
-            <div className="max-w-xl space-y-8 pb-12">
+            <div className="grid gap-6 pb-12 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
               {/* Cooperative profile */}
               <div>
-                <h2 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008] mb-5">Cooperative Profile</h2>
-                <form onSubmit={coopForm.handleSubmit(onCoopSettingsSubmit)} className="bg-white rounded-[20px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.06)] space-y-4">
-                  <Field label="Cooperative Name" error={coopForm.formState.errors.cooperativeName?.message}>
-                    <input {...coopForm.register("cooperativeName")} className={inputClass} placeholder="e.g. Coopérative Tiziri" />
-                  </Field>
+                <div className="mb-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Storefront</p>
+                  <h2 className="mt-1 text-xl font-bold text-[#1a1008]">Cooperative profile</h2>
+                  <p className="mt-1 text-sm text-[#7b6a5e]">These details shape how shoppers evaluate your cooperative.</p>
+                </div>
+                <form onSubmit={coopForm.handleSubmit(onCoopSettingsSubmit)} className={`${panelClass} overflow-hidden`}>
+                  <div className="space-y-4 p-5 sm:p-6">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field label="Cooperative name" error={coopForm.formState.errors.cooperativeName?.message}>
+                        <input {...coopForm.register("cooperativeName")} className={inputClass} placeholder="e.g. Coopérative Tiziri" />
+                      </Field>
 
-                  <Field label="City" error={coopForm.formState.errors.cooperativeCity?.message}>
-                    <input {...coopForm.register("cooperativeCity")} className={inputClass} placeholder="e.g. Taroudannt" />
-                  </Field>
+                      <Field label="City" error={coopForm.formState.errors.cooperativeCity?.message}>
+                        <input {...coopForm.register("cooperativeCity")} className={inputClass} placeholder="e.g. Taroudannt" />
+                      </Field>
+                    </div>
 
-                  <Field label="Description">
-                    <textarea {...coopForm.register("description")} rows={4} className={textareaClass} placeholder="Tell visitors about your cooperative…" />
-                  </Field>
-
-                  <Field label="Impact Statement" hint="How does the cooperative support its artisans?">
-                    <textarea {...coopForm.register("impactStatement")} rows={2} className={textareaClass} placeholder="We invest 20% of profits in education…" />
-                  </Field>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label="Number of Artisans" error={coopForm.formState.errors.artisanCount?.message}>
-                      <input {...coopForm.register("artisanCount", { valueAsNumber: true })} type="number" min={0} className={inputClass} placeholder="e.g. 24" />
+                    <Field label="Description">
+                      <textarea {...coopForm.register("description")} rows={4} className={textareaClass} placeholder="Tell visitors about your cooperative…" />
                     </Field>
-                    <Field label="Founded Year" error={coopForm.formState.errors.foundedYear?.message}>
-                      <input {...coopForm.register("foundedYear", { valueAsNumber: true })} type="number" min={1900} max={2025} className={inputClass} placeholder="e.g. 2008" />
+
+                    <Field label="Impact statement" hint="How does the cooperative support its artisans?">
+                      <textarea {...coopForm.register("impactStatement")} rows={2} className={textareaClass} placeholder="We invest 20% of profits in education…" />
                     </Field>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field label="Number of artisans" error={coopForm.formState.errors.artisanCount?.message}>
+                        <input {...coopForm.register("artisanCount", { valueAsNumber: true })} type="number" min={0} className={inputClass} placeholder="e.g. 24" />
+                      </Field>
+                      <Field label="Founded year" error={coopForm.formState.errors.foundedYear?.message}>
+                        <input {...coopForm.register("foundedYear", { valueAsNumber: true })} type="number" min={1900} max={new Date().getFullYear()} className={inputClass} placeholder="e.g. 2008" />
+                      </Field>
+                    </div>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={coopForm.formState.isSubmitting}
-                    className="w-full py-3.5 rounded-full bg-[#2A9D8F] text-white font-semibold text-sm hover:bg-[#228a7d] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-                  >
-                    {coopForm.formState.isSubmitting ? (
-                      <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />Saving…</>
-                    ) : "Update Profile"}
-                  </button>
+                  <div className="flex justify-end border-t border-[#eadfd5] bg-[#fbf7f2] px-5 py-3 sm:px-6">
+                    <button
+                      type="submit"
+                      disabled={coopForm.formState.isSubmitting}
+                      className={primaryButtonClass}
+                    >
+                      {coopForm.formState.isSubmitting ? (
+                        <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />Saving…</>
+                      ) : "Update profile"}
+                    </button>
+                  </div>
                 </form>
               </div>
 
               {/* Account settings */}
               <div>
-                <h2 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008] mb-5">Account Settings</h2>
-                <form onSubmit={accountForm.handleSubmit(onAccountSubmit)} className="bg-white rounded-[20px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.06)] space-y-4">
-                  <Field label="Full name" error={accountForm.formState.errors.name?.message}>
-                    <input {...accountForm.register("name")} className={inputClass} placeholder="Your name" />
-                  </Field>
+                <div className="mb-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Access</p>
+                  <h2 className="mt-1 text-xl font-bold text-[#1a1008]">Account settings</h2>
+                  <p className="mt-1 text-sm text-[#7b6a5e]">Keep owner login details current and secure.</p>
+                </div>
+                <form onSubmit={accountForm.handleSubmit(onAccountSubmit)} className={`${panelClass} overflow-hidden`}>
+                  <div className="space-y-4 p-5 sm:p-6">
+                    <Field label="Full name" error={accountForm.formState.errors.name?.message}>
+                      <input {...accountForm.register("name")} className={inputClass} placeholder="Your name" />
+                    </Field>
 
-                  <Field label="Email address" error={accountForm.formState.errors.email?.message}>
-                    <input {...accountForm.register("email")} type="email" className={inputClass} />
-                  </Field>
+                    <Field label="Email address" error={accountForm.formState.errors.email?.message}>
+                      <input {...accountForm.register("email")} type="email" className={inputClass} />
+                    </Field>
 
-                  <div className="pt-2 border-t border-[#f0e8e0]">
-                    <p className="text-xs text-[#9a8a7a] mb-3">Leave password fields blank to keep your current password.</p>
-                    <div className="space-y-4">
-                      <Field label="Current password" error={accountForm.formState.errors.currentPassword?.message}>
-                        <input {...accountForm.register("currentPassword")} type="password" className={inputClass} placeholder="••••••••" autoComplete="current-password" />
-                      </Field>
-                      <Field label="New password" error={accountForm.formState.errors.newPassword?.message}>
-                        <input {...accountForm.register("newPassword")} type="password" className={inputClass} placeholder="••••••••" autoComplete="new-password" />
-                      </Field>
-                      <Field label="Confirm new password" error={accountForm.formState.errors.confirmPassword?.message}>
-                        <input {...accountForm.register("confirmPassword")} type="password" className={inputClass} placeholder="••••••••" autoComplete="new-password" />
-                      </Field>
+                    <div className="border-t border-[#eadfd5] pt-4">
+                      <p className="mb-3 text-xs text-[#8c7b6f]">Leave password fields blank to keep your current password.</p>
+                      <div className="space-y-4">
+                        <Field label="Current password" error={accountForm.formState.errors.currentPassword?.message}>
+                          <input {...accountForm.register("currentPassword")} type="password" className={inputClass} placeholder="••••••••" autoComplete="current-password" />
+                        </Field>
+                        <Field label="New password" error={accountForm.formState.errors.newPassword?.message}>
+                          <input {...accountForm.register("newPassword")} type="password" className={inputClass} placeholder="••••••••" autoComplete="new-password" />
+                        </Field>
+                        <Field label="Confirm new password" error={accountForm.formState.errors.confirmPassword?.message}>
+                          <input {...accountForm.register("confirmPassword")} type="password" className={inputClass} placeholder="••••••••" autoComplete="new-password" />
+                        </Field>
+                      </div>
                     </div>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={accountForm.formState.isSubmitting}
-                    className="w-full py-3.5 rounded-full bg-[#E76F51] text-white font-semibold text-sm hover:bg-[#d46043] transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(231,111,81,0.3)]"
-                  >
-                    {accountForm.formState.isSubmitting ? (
-                      <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />Saving…</>
-                    ) : "Save Account Changes"}
-                  </button>
+                  <div className="flex justify-end border-t border-[#eadfd5] bg-[#fbf7f2] px-5 py-3 sm:px-6">
+                    <button
+                      type="submit"
+                      disabled={accountForm.formState.isSubmitting}
+                      className={primaryButtonClass}
+                    >
+                      {accountForm.formState.isSubmitting ? (
+                        <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />Saving…</>
+                      ) : "Save changes"}
+                    </button>
+                  </div>
                 </form>
               </div>
             </div>
           </FadeSection>
         )}
-      </div>
+      </main>
 
       {/* ── Modals ─────────────────────────────────────────────────────────── */}
       {modalProduct !== null && (
