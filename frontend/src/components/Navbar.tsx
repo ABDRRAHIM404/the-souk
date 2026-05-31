@@ -5,16 +5,29 @@ import toast from "react-hot-toast";
 import { useCart } from "@/hooks/useCart";
 import CartDrawer from "@/components/CartDrawer";
 
+function BrandMark() {
+  return (
+    <span className="flex items-center gap-2">
+      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1a1008] text-sm font-bold text-white">TS</span>
+      <span className="leading-none">
+        <span className="block text-lg font-bold text-[#1a1008]">The Souk</span>
+        <span className="hidden text-[11px] font-bold uppercase tracking-[0.14em] text-[#8c7b6f] sm:block">Souss-Massa</span>
+      </span>
+    </span>
+  );
+}
+
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
-  const { totalItems } = useCart();  
+  const { totalItems } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -28,287 +41,155 @@ export default function Navbar() {
     }
   };
 
-  const dashboardPath =
-    user?.role === "coop_owner" ? "/dashboard/coop" : "/dashboard/tourist";
-
-  const menuOpen = menuOpenPath === location.pathname;
+  const dashboardPath = user?.role === "coop_owner" ? "/dashboard/coop" : "/dashboard/tourist";
   const isDashboard = location.pathname.startsWith("/dashboard");
-  const isOpaque = scrolled || isDashboard;
+  const isOpaque = scrolled || isDashboard || menuOpen;
 
   return (
     <nav
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 100,
-        transition: "all 0.3s ease",
-        ...(isOpaque
-          ? {
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              background: "rgba(255,252,248,0.92)",
-              borderBottom: "1px solid #f0e8e0",
-              boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
-            }
-          : {
-              background: "transparent",
-            }),
-      }}
+      className={`fixed inset-x-0 top-0 z-[100] transition-all duration-200 ${
+        isOpaque
+          ? "border-b border-[#eadfd5] bg-[#FFFCF8]/95 shadow-[0_1px_18px_rgba(26,16,8,0.06)] backdrop-blur"
+          : "bg-[#FFFCF8]/70 backdrop-blur-sm"
+      }`}
     >
-      <div
-        style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          padding: "0 24px",
-          height: 68,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        {/* Logo */}
-        <Link
-          to="/"
-          style={{
-            fontFamily: '"Playfair Display", serif',
-            fontWeight: 800,
-            fontSize: 24,
-            color: "#E76F51",
-            textDecoration: "none",
-            letterSpacing: "-0.04em",
-          }}
-        >
-          ✦ The Souk
+      <div className="mx-auto flex h-[68px] max-w-[1200px] items-center justify-between px-4 sm:px-6">
+        <Link to="/" className="text-decoration-none" aria-label="The Souk home">
+          <BrandMark />
         </Link>
 
-        {/* Desktop nav links */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 32,
-          }}
-          className="desktop-nav"
-        >
+        <div className="hidden items-center gap-1 md:flex">
           <NavLink to="/marketplace">Marketplace</NavLink>
+          {user && <NavLink to={dashboardPath}>Dashboard</NavLink>}
+        </div>
 
+        <div className="hidden items-center gap-2 md:flex">
+          <CartButton totalItems={totalItems} onClick={() => setCartOpen(true)} />
           {user ? (
             <>
-              <NavLink to={dashboardPath}>Dashboard</NavLink>
               <button
                 onClick={handleLogout}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#6b5a4e",
-                  fontSize: 15,
-                  fontWeight: 500,
-                }}
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-[#6b5a4e] transition-colors hover:bg-[#faf6f2] hover:text-[#1a1008]"
+                type="button"
               >
                 Log out
               </button>
-              <Link
-                to={dashboardPath}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  textDecoration: "none",
-                }}
-              >
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "50%",
-                    background: "#E76F51",
-                    color: "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                    fontSize: 14,
-                  }}
-                >
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
+              <Link to={dashboardPath} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1a1008] text-sm font-bold text-white" aria-label="Open dashboard">
+                {user.name.charAt(0).toUpperCase()}
               </Link>
             </>
           ) : (
             <>
               <NavLink to="/login">Log in</NavLink>
-              <Link
-                to="/signup"
-                style={{
-                  background: "#E76F51",
-                  color: "#fff",
-                  borderRadius: 50,
-                  padding: "10px 24px",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  textDecoration: "none",
-                  transition: "background 0.2s",
-                }}
-              >
+              <Link to="/signup" className="rounded-lg bg-[#1a1008] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#332216]">
                 Join The Souk
               </Link>
             </>
           )}
+        </div>
 
-          {/* Cart icon */}
+        <div className="flex items-center gap-1 md:hidden">
+          <CartButton totalItems={totalItems} onClick={() => setCartOpen(true)} />
           <button
-            onClick={() => setCartOpen(true)}
-            style={{
-              position: "relative",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              padding: 8,
-              color: "#6b5a4e",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "50%",
-              transition: "background 0.2s",
-            }}
-            aria-label="Open cart"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="rounded-lg p-2 text-[#1a1008] transition-colors hover:bg-[#faf6f2]"
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            type="button"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              {menuOpen ? (
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              ) : (
+                <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              )}
             </svg>
-            {totalItems > 0 && (
-              <span style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                width: 18,
-                height: 18,
-                background: "#E76F51",
-                color: "#fff",
-                fontSize: 10,
-                fontWeight: 700,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}>
-                {totalItems > 9 ? "9+" : totalItems}
-              </span>
-            )}
           </button>
         </div>
-
-        {/* Mobile hamburger */}
-        <button
-          onClick={() =>
-            setMenuOpenPath((p) =>
-              p === location.pathname ? null : location.pathname
-            )
-          }
-          style={{
-            display: "none",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            padding: 8,
-            color: "#1a1008",
-          }}
-          className="mobile-menu-btn"
-          aria-label="Toggle menu"
-        >
-          <div style={{ width: 24, height: 2, background: "currentColor", marginBottom: 5 }} />
-          <div style={{ width: 24, height: 2, background: "currentColor", marginBottom: 5 }} />
-          <div style={{ width: 24, height: 2, background: "currentColor" }} />
-        </button>
       </div>
 
-      {/* Mobile menu */}
       {menuOpen && (
-        <div
-          style={{
-            background: "rgba(255,252,248,0.98)",
-            borderTop: "1px solid #f0e8e0",
-            padding: "16px 24px 24px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 16,
-          }}
-        >
-          <MobileNavLink to="/marketplace">Marketplace</MobileNavLink>
-          {user ? (
-            <>
-              <MobileNavLink to={dashboardPath}>Dashboard</MobileNavLink>
-              <button
-                onClick={handleLogout}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#6b5a4e",
-                  fontSize: 16,
-                  textAlign: "left",
-                  padding: "8px 0",
-                }}
-              >
-                Log out
-              </button>
-            </>
-          ) : (
-            <>
-              <MobileNavLink to="/login">Log in</MobileNavLink>
-              <MobileNavLink to="/signup">Join The Souk</MobileNavLink>
-            </>
-          )}
+        <div className="border-t border-[#eadfd5] bg-[#FFFCF8] px-4 py-3 md:hidden">
+          <div className="mx-auto max-w-[1200px] space-y-1">
+            <MobileNavLink to="/marketplace" onNavigate={() => setMenuOpen(false)}>Marketplace</MobileNavLink>
+            {user ? (
+              <>
+                <MobileNavLink to={dashboardPath} onNavigate={() => setMenuOpen(false)}>Dashboard</MobileNavLink>
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    void handleLogout();
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm font-semibold text-[#6b5a4e] transition-colors hover:bg-[#faf6f2] hover:text-[#1a1008]"
+                  type="button"
+                >
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <MobileNavLink to="/login" onNavigate={() => setMenuOpen(false)}>Log in</MobileNavLink>
+                <MobileNavLink to="/signup" onNavigate={() => setMenuOpen(false)}>Join The Souk</MobileNavLink>
+              </>
+            )}
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                setCartOpen(true);
+              }}
+              className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm font-semibold text-[#6b5a4e] transition-colors hover:bg-[#faf6f2] hover:text-[#1a1008]"
+              type="button"
+            >
+              Cart
+              <span className="rounded-full bg-[#f0e8e0] px-2 py-0.5 text-xs text-[#6b5a4e]">{totalItems}</span>
+            </button>
+          </div>
         </div>
       )}
-
-      <style>{`
-        @media (max-width: 768px) {
-          .desktop-nav { display: none !important; }
-          .mobile-menu-btn { display: block !important; }
-        }
-      `}</style>
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </nav>
   );
 }
 
+function CartButton({ totalItems, onClick }: { totalItems: number; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="relative rounded-lg p-2 text-[#6b5a4e] transition-colors hover:bg-[#faf6f2] hover:text-[#1a1008]"
+      aria-label="Open cart"
+      type="button"
+    >
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M6 7h12l-1 13H7L6 7zM9 7a3 3 0 016 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      {totalItems > 0 && (
+        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E76F51] px-1 text-[10px] font-bold text-white">
+          {totalItems > 9 ? "9+" : totalItems}
+        </span>
+      )}
+    </button>
+  );
+}
+
 function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
   const location = useLocation();
-  const active = location.pathname === to;
+  const active = location.pathname === to || (to.startsWith("/dashboard") && location.pathname.startsWith("/dashboard"));
   return (
     <Link
       to={to}
-      style={{
-        color: active ? "#E76F51" : "#6b5a4e",
-        textDecoration: "none",
-        fontSize: 15,
-        fontWeight: active ? 600 : 500,
-        transition: "color 0.2s",
-      }}
+      className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+        active ? "bg-[#faf6f2] text-[#1a1008]" : "text-[#6b5a4e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
+      }`}
     >
       {children}
     </Link>
   );
 }
 
-function MobileNavLink({ to, children }: { to: string; children: React.ReactNode }) {
+function MobileNavLink({ to, children, onNavigate }: { to: string; children: React.ReactNode; onNavigate: () => void }) {
   return (
-    <Link
-      to={to}
-      style={{
-        color: "#1a1008",
-        textDecoration: "none",
-        fontSize: 16,
-        fontWeight: 500,
-        padding: "8px 0",
-        borderBottom: "1px solid #f0e8e0",
-      }}
-    >
+    <Link to={to} onClick={onNavigate} className="flex items-center justify-between rounded-lg px-3 py-3 text-sm font-semibold text-[#6b5a4e] transition-colors hover:bg-[#faf6f2] hover:text-[#1a1008]">
       {children}
     </Link>
   );

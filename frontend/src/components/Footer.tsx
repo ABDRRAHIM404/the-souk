@@ -2,154 +2,98 @@ import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
-    <footer
-      style={{
-        background: "#1a1008",
-        color: "#9a8a7a",
-        padding: "60px 24px 32px",
-        marginTop: "auto",
-      }}
-    >
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 40,
-            marginBottom: 48,
-          }}
-        >
-          {/* Brand */}
+    <footer className="mt-auto bg-[#1a1008] text-[#b7a99d]">
+      <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 sm:py-14">
+        <div className="grid gap-8 border-b border-white/10 pb-10 lg:grid-cols-[1.35fr_0.8fr_0.8fr_1fr]">
           <div>
-            <div
-              style={{
-                fontFamily: '"Playfair Display", serif',
-                fontWeight: 800,
-                fontSize: 22,
-                color: "#E76F51",
-                letterSpacing: "-0.04em",
-                marginBottom: 12,
-              }}
-            >
-              ✦ The Souk
-            </div>
-            <p style={{ fontSize: 14, lineHeight: 1.7, maxWidth: 240 }}>
-              A fair-trade marketplace connecting conscious tourists with
-              Berber/Amazigh cooperatives in Souss-Massa.
+            <Link to="/" className="inline-flex items-center gap-2 text-white">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-sm font-bold text-[#1a1008]">TS</span>
+              <span>
+                <span className="block text-xl font-bold">The Souk</span>
+                <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-[#E9C46A]">Souss-Massa marketplace</span>
+              </span>
+            </Link>
+            <p className="mt-4 max-w-sm text-sm leading-7">
+              A trusted marketplace for travellers to discover fair-trade products from Berber and Amazigh cooperatives across Souss-Massa.
             </p>
-          </div>
-
-          {/* Explore */}
-          <div>
-            <h4
-              style={{
-                color: "#fff",
-                fontSize: 13,
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                marginBottom: 16,
-              }}
-            >
-              Explore
-            </h4>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <FooterLink to="/marketplace">Marketplace</FooterLink>
-              <FooterLink to="/signup">Join as Cooperative</FooterLink>
-              <FooterLink to="/signup">Join as Tourist</FooterLink>
+            <div className="mt-5 grid max-w-sm grid-cols-2 gap-2">
+              <TrustMetric value="88%" label="to cooperatives" />
+              <TrustMetric value="12%" label="transparent platform fee" />
             </div>
           </div>
 
-          {/* Regions */}
-          <div>
-            <h4
-              style={{
-                color: "#fff",
-                fontSize: 13,
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                marginBottom: 16,
-              }}
-            >
-              Regions
-            </h4>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {["Agadir", "Tiznit", "Taroudant", "Tafraout", "Taliouine", "Imsouane"].map(
-                (city) => (
-                  <span key={city} style={{ fontSize: 14 }}>
-                    {city}
-                  </span>
-                )
-              )}
-            </div>
-          </div>
+          <FooterGroup title="Explore">
+            <FooterLink to="/marketplace">Marketplace</FooterLink>
+            <FooterLink to="/signup">Join as tourist</FooterLink>
+            <FooterLink to="/signup">Join as cooperative</FooterLink>
+            <FooterLink to="/login">Log in</FooterLink>
+          </FooterGroup>
 
-          {/* Fair trade */}
+          <FooterGroup title="Regions">
+            {["Agadir", "Tiznit", "Taroudant", "Tafraout", "Taliouine", "Imsouane"].map((city) => (
+              <span key={city} className="text-sm text-[#b7a99d]">{city}</span>
+            ))}
+          </FooterGroup>
+
           <div>
-            <h4
-              style={{
-                color: "#fff",
-                fontSize: 13,
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                marginBottom: 16,
-              }}
-            >
-              Our Promise
-            </h4>
-            <div
-              style={{
-                background: "rgba(231,111,81,0.12)",
-                borderRadius: 12,
-                padding: "16px",
-                fontSize: 13,
-                lineHeight: 1.7,
-                color: "#E9C46A",
-              }}
-            >
-              <div style={{ fontWeight: 700, marginBottom: 4 }}>88% to cooperatives</div>
-              Fixed fair-trade prices. Transparent 12% platform fee. No haggling, ever.
+            <h4 className="mb-4 text-xs font-bold uppercase tracking-[0.14em] text-white">Our promise</h4>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="text-sm font-bold text-white">Tourism that gives back</p>
+              <p className="mt-2 text-sm leading-6 text-[#b7a99d]">
+                Fixed fair-trade prices, cooperative-first payouts, and product stories that make every purchase easier to trust.
+              </p>
+            </div>
+            <div className="mt-4 flex gap-2" aria-label="Social links">
+              <SocialLink label="Instagram" />
+              <SocialLink label="Facebook" />
+              <SocialLink label="LinkedIn" />
             </div>
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div
-          style={{
-            borderTop: "1px solid rgba(255,255,255,0.08)",
-            paddingTop: 24,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 12,
-            fontSize: 13,
-          }}
-        >
-          <span>© {new Date().getFullYear()} The Souk — Souss-Massa Explorer</span>
-          <span>Built with respect for Amazigh culture 🏔️</span>
+        <div className="flex flex-col gap-3 pt-6 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <span>© {new Date().getFullYear()} The Souk. Built for responsible travel in Morocco.</span>
+          <span className="text-[#E9C46A]">Fair trade. Local craft. Clear impact.</span>
         </div>
       </div>
     </footer>
   );
 }
 
+function TrustMetric({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
+      <p className="text-lg font-bold text-white">{value}</p>
+      <p className="mt-1 text-xs leading-4 text-[#b7a99d]">{label}</p>
+    </div>
+  );
+}
+
+function FooterGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h4 className="mb-4 text-xs font-bold uppercase tracking-[0.14em] text-white">{title}</h4>
+      <div className="flex flex-col gap-2.5">{children}</div>
+    </div>
+  );
+}
+
 function FooterLink({ to, children }: { to: string; children: React.ReactNode }) {
   return (
-    <Link
-      to={to}
-      style={{
-        color: "#9a8a7a",
-        textDecoration: "none",
-        fontSize: 14,
-        transition: "color 0.2s",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.color = "#E76F51")}
-      onMouseLeave={(e) => (e.currentTarget.style.color = "#9a8a7a")}
-    >
+    <Link to={to} className="text-sm text-[#b7a99d] transition-colors hover:text-white">
       {children}
     </Link>
+  );
+}
+
+function SocialLink({ label }: { label: string }) {
+  return (
+    <a
+      href="#"
+      aria-label={label}
+      className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-xs font-bold text-white transition-colors hover:bg-white/10"
+    >
+      {label.slice(0, 2).toUpperCase()}
+    </a>
   );
 }

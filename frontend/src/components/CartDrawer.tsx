@@ -11,118 +11,101 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
 
   return (
     <>
-      {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/30 z-40 transition-opacity duration-300 ${
-          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        className={`fixed inset-0 z-40 bg-black/30 transition-opacity duration-300 ${
+          open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={onClose}
       />
 
-      {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-sm bg-[#FFFCF8] z-50 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`ds-drawer fixed right-0 top-0 z-50 flex h-full w-full max-w-sm flex-col transition-transform duration-300 ease-in-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[#f0e8e0]">
-          <h2 className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008]">
-            Your Cart
+        <div className="flex items-center justify-between border-b border-[#eadfd5] px-6 py-5">
+          <h2 className="text-xl font-bold text-[#1a1008]">
+            Your cart
             {totalItems > 0 && (
-              <span className="ml-2 text-sm font-normal text-[#9a8a7a]">
+              <span className="ml-2 text-sm font-medium text-[#8c7b6f]">
                 ({totalItems} {totalItems === 1 ? "item" : "items"})
               </span>
             )}
           </h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f0e8e0] transition-colors"
-            aria-label="Close cart"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6l12 12" stroke="#6b5a4e" strokeWidth="2" strokeLinecap="round" />
+          <button onClick={onClose} className="ds-icon-btn" aria-label="Close cart" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </button>
         </div>
 
-        {/* Items */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 py-4">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center pb-16">
-              <div className="text-5xl mb-4">🛒</div>
-              <p className="font-['Playfair_Display'] font-bold text-lg text-[#1a1008] mb-1">
-                Your cart is empty
-              </p>
-              <p className="text-[#9a8a7a] text-sm">
-                Discover handcrafted goods from Moroccan cooperatives.
-              </p>
-              <Link
-                to="/marketplace"
-                onClick={onClose}
-                className="mt-6 bg-[#E76F51] text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-[#d46043] transition-colors"
-              >
-                Browse Marketplace
+            <div className="flex h-full flex-col items-center justify-center pb-16 text-center">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-[#eadfd5] bg-[#faf6f2] text-[#7b6a5e]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 7h12l-1 13H7L6 7zM9 7a3 3 0 016 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <p className="mb-1 text-lg font-bold text-[#1a1008]">Your cart is empty</p>
+              <p className="text-sm text-[#8c7b6f]">Discover handcrafted goods from Moroccan cooperatives.</p>
+              <Link to="/marketplace" onClick={onClose} className="ds-btn ds-btn-primary mt-6">
+                Browse marketplace
               </Link>
             </div>
           ) : (
             items.map((item) => (
-              <div key={item.productId} className="flex gap-3 bg-white rounded-[16px] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.05)]">
-                {/* Image */}
-                <Link to={`/marketplace/${item.productId}`} onClick={onClose} className="shrink-0">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#faf6f2]">
+              <div key={item.productId} className="ds-panel flex gap-3 p-3">
+                <Link to={`/products/${item.productId}`} onClick={onClose} className="shrink-0">
+                  <div className="h-16 w-16 overflow-hidden rounded-lg bg-[#faf6f2]">
                     {item.image ? (
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="opacity-20">
-                          <rect x="3" y="3" width="18" height="18" rx="3" stroke="#6b5a4e" strokeWidth="1.5" />
+                      <div className="flex h-full w-full items-center justify-center text-[#b7a99d]">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" />
                         </svg>
                       </div>
                     )}
                   </div>
                 </Link>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <Link to={`/marketplace/${item.productId}`} onClick={onClose}>
-                    <p className="text-sm font-semibold text-[#1a1008] truncate hover:text-[#E76F51] transition-colors">
+                <div className="min-w-0 flex-1">
+                  <Link to={`/products/${item.productId}`} onClick={onClose}>
+                    <p className="truncate text-sm font-semibold text-[#1a1008] transition-colors hover:text-[#E76F51]">
                       {item.name}
                     </p>
                   </Link>
-                  <p className="text-xs text-[#9a8a7a] mt-0.5">{item.cooperativeName}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    {/* Quantity stepper */}
+                  <p className="mt-0.5 text-xs text-[#8c7b6f]">{item.cooperativeName}</p>
+                  <div className="mt-2 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                        className="w-6 h-6 rounded-full bg-[#f0e8e0] flex items-center justify-center text-[#6b5a4e] hover:bg-[#E76F51] hover:text-white transition-colors text-xs font-bold"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f0e8e0] text-sm font-bold text-[#6b5a4e] transition-colors hover:bg-[#1a1008] hover:text-white"
+                        type="button"
                       >
-                        −
+                        -
                       </button>
-                      <span className="text-sm font-semibold text-[#1a1008] w-5 text-center">
-                        {item.quantity}
-                      </span>
+                      <span className="w-6 text-center text-sm font-semibold text-[#1a1008]">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                        className="w-6 h-6 rounded-full bg-[#f0e8e0] flex items-center justify-center text-[#6b5a4e] hover:bg-[#E76F51] hover:text-white transition-colors text-xs font-bold"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f0e8e0] text-sm font-bold text-[#6b5a4e] transition-colors hover:bg-[#1a1008] hover:text-white"
+                        type="button"
                       >
                         +
                       </button>
                     </div>
-                    <span className="text-sm font-bold text-[#E76F51]">
-                      MAD {(item.price * item.quantity).toFixed(2)}
-                    </span>
+                    <span className="text-sm font-bold text-[#1a1008]">MAD {(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 </div>
 
-                {/* Remove */}
                 <button
                   onClick={() => removeItem(item.productId)}
-                  className="shrink-0 self-start mt-1 text-[#c4b8ae] hover:text-red-400 transition-colors"
+                  className="mt-1 shrink-0 self-start text-[#b7a99d] transition-colors hover:text-red-500"
                   aria-label="Remove item"
+                  type="button"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
                 </button>
@@ -131,24 +114,15 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
           )}
         </div>
 
-        {/* Footer */}
         {items.length > 0 && (
-          <div className="px-6 py-5 border-t border-[#f0e8e0] space-y-3">
+          <div className="space-y-3 border-t border-[#eadfd5] px-6 py-5">
             <div className="flex items-center justify-between">
-              <span className="text-[#6b5a4e] font-semibold">Total</span>
-              <span className="font-['Playfair_Display'] font-bold text-xl text-[#1a1008]">
-                MAD {totalPrice.toFixed(2)}
-              </span>
+              <span className="font-semibold text-[#6b5a4e]">Total</span>
+              <span className="text-xl font-bold text-[#1a1008]">MAD {totalPrice.toFixed(2)}</span>
             </div>
-            <p className="text-xs text-[#9a8a7a]">
-              Cash on delivery · Free shipping within Morocco
-            </p>
-            <Link
-              to="/checkout"
-              onClick={onClose}
-              className="block w-full bg-[#E76F51] text-white text-center py-3.5 rounded-full font-semibold text-sm hover:bg-[#d46043] transition-colors shadow-[0_4px_16px_rgba(231,111,81,0.3)]"
-            >
-              Proceed to Checkout
+            <p className="text-xs text-[#8c7b6f]">Cash on delivery. Delivery details are confirmed by the cooperative.</p>
+            <Link to="/checkout" onClick={onClose} className="ds-btn ds-btn-primary w-full">
+              Proceed to checkout
             </Link>
           </div>
         )}

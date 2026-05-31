@@ -870,7 +870,7 @@ export default function CoopDashboard() {
             </div>
 
             {/* Quick stats */}
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-130">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[520px]">
               {[
                 { label: "Active listings", value: activeProducts },
                 { label: "Units in stock", value: totalStock },
@@ -890,7 +890,7 @@ export default function CoopDashboard() {
       <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7">
         <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
           {/* Desktop navigation */}
-          <aside className="sticky top-22 hidden lg:block">
+          <aside className="sticky top-[88px] hidden lg:block">
             <div className={`${panelClass} overflow-hidden p-1`}>
               {tabs.map((tab) => (
                 <button
@@ -921,7 +921,7 @@ export default function CoopDashboard() {
 
           <div className="min-w-0 lg:col-start-2">
             {/* Mobile tabs */}
-            <div className="sticky top-17 z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur lg:hidden">
+            <div className="sticky top-[68px] z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur lg:hidden">
               <div className="grid min-w-max grid-cols-3 gap-1 sm:min-w-0">
                 {tabs.map((tab) => (
                   <button
@@ -1116,7 +1116,7 @@ export default function CoopDashboard() {
                       <StarRating rating={avgRating} size={18} />
                       <p className="text-xs text-[#9a8a7a] mt-1">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p>
                     </div>
-                    <div className="space-y-1 min-w-35">
+                    <div className="min-w-35 space-y-1">
                       {[5, 4, 3, 2, 1].map((star) => {
                         const count = reviews.filter((r) => Math.round(r.rating) === star).length;
                         const pct = reviews.length ? (count / reviews.length) * 100 : 0;
