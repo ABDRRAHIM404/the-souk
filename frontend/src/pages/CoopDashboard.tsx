@@ -5,13 +5,13 @@ import { coopService } from "@/services/coopService";
 import api from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import FadeSection from "@/components/FadeSection";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { mediaUrl } from "@/utils/media";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES: ProductCategory[] = ["argan", "carpets", "saffron", "pottery", "food", "leather", "other"];
@@ -118,9 +118,9 @@ const textareaClass =
 
 const panelClass = "rounded-xl border border-[#eadfd5] bg-white shadow-[0_1px_2px_rgba(26,16,8,0.04)]";
 const primaryButtonClass =
-  "inline-flex items-center justify-center gap-2 rounded-lg bg-[#1a1008] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#332216] disabled:opacity-60";
+  "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#1a1008] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#332216] disabled:opacity-60";
 const secondaryButtonClass =
-  "inline-flex items-center justify-center gap-2 rounded-lg border border-[#e8ddd3] bg-white px-4 py-2.5 text-sm font-semibold text-[#5f5046] transition-colors hover:bg-[#faf6f2]";
+  "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#e8ddd3] bg-white px-4 py-2.5 text-sm font-semibold text-[#5f5046] transition-colors hover:border-[#d8cbbf] hover:bg-[#faf6f2] hover:text-[#1a1008]";
 
 function formatCategory(category: string) {
   return category.charAt(0).toUpperCase() + category.slice(1);
@@ -138,14 +138,43 @@ function formatDateShort(value?: string) {
   return new Date(value).toLocaleDateString("en-GB", { month: "short", day: "numeric" });
 }
 
-function getStockPercent(stock: number | undefined) {
-  return Math.min(((stock ?? 0) / 25) * 100, 100);
-}
-
 function getProductStatus(product: Product) {
   if (product.stock === 0 || product.isAvailable === false) return { label: "Out of stock", tone: "danger" as const };
   if ((product.stock ?? 0) <= 5) return { label: "Low stock", tone: "warning" as const };
   return { label: "Active", tone: "success" as const };
+}
+
+function getCoopLocation(coop: Cooperative | null) {
+  const city = coop?.location?.city ?? coop?.city;
+  const region = coop?.location?.region ?? coop?.region;
+  const place = [city, region].filter(Boolean).join(", ");
+  return place ? `${place}, Morocco` : "Set up your profile to help shoppers find your cooperative.";
+}
+
+function Icon({ name, className = "" }: { name: "plus" | "store" | "box" | "star" | "settings" | "review" | "empty"; className?: string }) {
+  const paths = {
+    plus: <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />,
+    store: <path d="M4 10h16l-1.2-5.2A1 1 0 0017.8 4H6.2a1 1 0 00-1 .8L4 10Zm1 0v10h14V10M9 20v-6h6v6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />,
+    box: <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 8.8 8-4.3M12 11.8 4 7.5M12 21v-9.2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />,
+    star: <path d="m12 3.5 2.5 5.1 5.6.8-4 3.9.9 5.5-5-2.6-5 2.6.9-5.5-4-3.9 5.6-.8L12 3.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />,
+    settings: <path d="M12 15.5A3.5 3.5 0 1012 8a3.5 3.5 0 000 7.5Zm7.4-2.2a7.8 7.8 0 000-2.6l2-1.5-2-3.5-2.4 1a8 8 0 00-2.2-1.3L14.5 3h-4l-.4 2.4A8 8 0 008 6.7l-2.4-1-2 3.5 2 1.5a7.8 7.8 0 000 2.6l-2 1.5 2 3.5 2.4-1a8 8 0 002.2 1.3l.4 2.4h4l.4-2.4a8 8 0 002.2-1.3l2.4 1 2-3.5-2.2-1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
+    review: <path d="M4 5.5A2.5 2.5 0 016.5 3h11A2.5 2.5 0 0120 5.5v7A2.5 2.5 0 0117.5 15H9l-5 4V5.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />,
+    empty: <path d="M5 8h14M7 8v11h10V8M10 8V6a2 2 0 014 0v2M9.5 13h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />,
+  };
+
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">{paths[name]}</svg>;
+}
+
+function StatCard({ label, value, detail }: { label: string; value: string | number; detail: string }) {
+  return (
+    <div className="flex min-h-30 flex-col justify-between rounded-xl border border-[#eadfd5] bg-white p-5 shadow-[0_1px_2px_rgba(26,16,8,0.04)]">
+      <p className="text-sm font-semibold text-[#7b6a5e]">{label}</p>
+      <div className="mt-5">
+        <p className="text-3xl font-bold leading-none text-[#1a1008] sm:text-4xl">{value}</p>
+        <p className="mt-2 text-xs font-medium text-[#9a8a7a]">{detail}</p>
+      </div>
+    </div>
+  );
 }
 
 function StatusChip({ label, tone }: { label: string; tone: "success" | "warning" | "danger" | "neutral" }) {
@@ -200,13 +229,11 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className={`${panelClass} flex min-h-65 flex-col items-center justify-center px-6 py-10 text-center`}>
-      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-[#eadfd5] bg-[#faf6f2] text-[#7b6a5e]">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M4 7h16M6 7v12h12V7M9 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+    <div className={`${panelClass} flex min-h-80 flex-col items-center justify-center px-6 py-12 text-center`}>
+      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-[#d9eee9] bg-[#edf8f6] text-[#19786d]">
+        <Icon name="empty" className="h-7 w-7" />
       </div>
-      <h3 className="text-base font-bold text-[#1a1008]">{title}</h3>
+      <h3 className="text-lg font-bold text-[#1a1008]">{title}</h3>
       <p className="mt-2 max-w-md text-sm leading-6 text-[#7b6a5e]">{description}</p>
       {action && <div className="mt-5">{action}</div>}
     </div>
@@ -550,9 +577,9 @@ function ProductMobileCard({
   const status = getProductStatus(product);
 
   return (
-    <article className={`${panelClass} p-3.5`}>
+    <article className={`${panelClass} p-4`}>
       <div className="flex gap-3">
-        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[#f0e8e0] bg-[#faf6f2]">
+        <div className="h-18 w-18 shrink-0 overflow-hidden rounded-lg border border-[#f0e8e0] bg-[#faf6f2]">
           {product.images?.[0] ? (
             <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
           ) : (
@@ -580,10 +607,7 @@ function ProductMobileCard({
             </div>
             <div className="rounded-lg bg-[#fbf7f2] px-2.5 py-2">
               <p className="text-xs text-[#8c7b6f]">Stock</p>
-              <p className="font-semibold text-[#1a1008]">{product.stock ?? 0}</p>
-              <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#eadfd5]">
-                <div className="h-full rounded-full bg-[#2A9D8F]" style={{ width: `${getStockPercent(product.stock)}%` }} />
-              </div>
+              <p className="font-semibold text-[#1a1008]">{product.stock ?? 0} units</p>
             </div>
             <div className="rounded-lg bg-[#fbf7f2] px-2.5 py-2">
               <p className="text-xs text-[#8c7b6f]">Trade</p>
@@ -828,89 +852,91 @@ export default function CoopDashboard() {
   };
 
   const tabs = [
-    { id: "products" as const, label: "Products", description: "Inventory and listings", count: products.length },
-    { id: "reviews" as const, label: "Reviews", description: "Customer feedback", count: reviews.length },
-    { id: "settings" as const, label: "Settings", description: "Storefront and access", count: null },
+    { id: "products" as const, label: "Products", description: "Inventory and listings", count: products.length, icon: "box" as const },
+    { id: "reviews" as const, label: "Reviews", description: "Customer feedback", count: reviews.length, icon: "review" as const },
+    { id: "settings" as const, label: "Settings", description: "Storefront and access", count: null, icon: "settings" as const },
   ];
+  const coopName = coop?.name ?? user?.name ?? "Cooperative";
+  const isVerified = Boolean(coop?.verified || coop?.isCertified);
 
   return (
-    <div className="min-h-screen bg-[#FFFCF8]" style={{ paddingTop: 68 }}>
+    <div className="min-h-screen bg-[#f7f4ef]" style={{ paddingTop: 68 }}>
       <Navbar />
 
       {/* Header */}
-      <div className="border-b border-[#eadfd5] bg-[#fbf7f2]">
-        <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex min-w-0 items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#1a1008] text-lg font-bold text-white">
-                {coop?.name?.charAt(0) ?? user?.name?.charAt(0) ?? "C"}
+      <div className="border-b border-[#e4d8cc] bg-[#fbf8f3]">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#e6dacf] bg-[#1a1008] text-2xl font-bold text-white shadow-[0_1px_2px_rgba(26,16,8,0.08)]">
+                {coop?.logo ? <img src={mediaUrl(coop.logo)} alt={coopName} className="h-full w-full object-cover" /> : coopName.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Cooperative dashboard</p>
-                <h1 className="mt-1 truncate text-2xl font-bold text-[#1a1008] md:text-3xl">
-                  {coop?.name ?? user?.name ?? "Cooperative"}
+                <h1 className="truncate text-3xl font-bold tracking-normal text-[#1a1008] sm:text-4xl">
+                  {coopName}
                 </h1>
-                <p className="mt-1 text-sm leading-6 text-[#7b6a5e]">
-                  {coop?.city ? `${coop.city}, Morocco` : "Set up your profile to help shoppers find your cooperative."}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button onClick={openNewProduct} className={primaryButtonClass} type="button">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                    Add product
-                  </button>
-                  {coopId && (
-                    <a href={`/coops/${coopId}`} className={secondaryButtonClass}>
-                      View storefront
-                    </a>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm font-medium text-[#6b5a4e]">
+                  {isVerified && (
+                    <span className="inline-flex items-center rounded-full border border-[#b9dfd8] bg-[#edf8f6] px-2.5 py-1 text-xs font-bold text-[#19786d]">
+                      Verified Cooperative
+                    </span>
                   )}
+                  <span>{getCoopLocation(coop)}</span>
                 </div>
               </div>
             </div>
 
-            {/* Quick stats */}
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[520px]">
-              {[
-                { label: "Active listings", value: activeProducts },
-                { label: "Units in stock", value: totalStock },
-                { label: "Low stock", value: lowStockProducts },
-                { label: "Avg rating", value: avgRating !== null ? avgRating.toFixed(1) : "New" },
-              ].map((stat) => (
-                <div key={stat.label} className="rounded-lg border border-[#eadfd5] bg-white px-3 py-2.5">
-                  <p className="text-lg font-bold leading-none text-[#1a1008]">{stat.value}</p>
-                  <p className="mt-1 text-xs font-medium text-[#8c7b6f]">{stat.label}</p>
-                </div>
-              ))}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <button onClick={openNewProduct} className={primaryButtonClass} type="button">
+                <Icon name="plus" />
+                Add Product
+              </button>
+              {coopId && (
+                <a href={`/coops/${coopId}`} className={secondaryButtonClass}>
+                  <Icon name="store" />
+                  View Storefront
+                </a>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7">
-        <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard label="Active Listings" value={activeProducts} detail={`${products.length} total product${products.length === 1 ? "" : "s"}`} />
+          <StatCard label="Units In Stock" value={totalStock} detail="Available across all listings" />
+          <StatCard label="Low Stock Products" value={lowStockProducts} detail="Products at 5 units or fewer" />
+          <StatCard label="Average Rating" value={avgRating !== null ? avgRating.toFixed(1) : "New"} detail={`${reviews.length} review${reviews.length === 1 ? "" : "s"} received`} />
+        </section>
+
+        <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
           {/* Desktop navigation */}
-          <aside className="sticky top-[88px] hidden lg:block">
-            <div className={`${panelClass} overflow-hidden p-1`}>
+          <aside className="sticky top-23 hidden lg:block">
+            <div className={`${panelClass} overflow-hidden p-3`}>
+              <p className="px-3 pb-3 pt-1 text-xs font-bold uppercase tracking-[0.12em] text-[#9a8a7a]">Manage</p>
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-3 text-left transition-colors ${
+                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-3.5 text-left transition-colors ${
                     activeTab === tab.id
-                      ? "bg-[#1a1008] text-white"
-                      : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
+                      ? "bg-[#f0f8f6] text-[#123f39] ring-1 ring-[#c8e5df]"
+                      : "text-[#6b5a4e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
                   }`}
                   type="button"
                 >
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold">{tab.label}</span>
-                    <span className={`block truncate text-xs ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>
-                      {tab.description}
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${activeTab === tab.id ? "bg-white text-[#19786d]" : "bg-[#fbf7f2] text-[#8c7b6f]"}`}>
+                      <Icon name={tab.icon} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-bold">{tab.label}</span>
+                      <span className="block truncate text-xs text-[#8c7b6f]">{tab.description}</span>
                     </span>
                   </span>
                   {tab.count !== null && tab.count > 0 && (
-                    <span className={`rounded-full px-2 py-0.5 text-xs ${activeTab === tab.id ? "bg-white/15 text-white" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${activeTab === tab.id ? "bg-white text-[#19786d]" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
                       {tab.count}
                     </span>
                   )}
@@ -921,20 +947,21 @@ export default function CoopDashboard() {
 
           <div className="min-w-0 lg:col-start-2">
             {/* Mobile tabs */}
-            <div className="sticky top-[68px] z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur lg:hidden">
+            <div className="sticky top-17 z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#fbf8f3]/95 p-1.5 backdrop-blur lg:hidden">
               <div className="grid min-w-max grid-cols-3 gap-1 sm:min-w-0">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex min-h-12 items-center justify-between gap-4 rounded-lg px-3 text-left transition-colors sm:px-4 ${
+                    className={`flex min-h-12 items-center justify-center gap-2 rounded-lg px-3 text-left transition-colors sm:justify-between sm:px-4 ${
                       activeTab === tab.id
                         ? "bg-[#1a1008] text-white"
                         : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
                     }`}
                     type="button"
                   >
-                    <span>
+                    <Icon name={tab.icon} className="shrink-0" />
+                    <span className="min-w-0">
                       <span className="block text-sm font-semibold">{tab.label}</span>
                       <span className={`hidden text-xs sm:block ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>
                         {tab.description}
@@ -953,21 +980,18 @@ export default function CoopDashboard() {
         {/* ── Products Tab ──────────────────────────────────────────────────── */}
         {activeTab === "products" && (
           <FadeSection>
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Inventory</p>
-                <h2 className="mt-1 text-xl font-bold text-[#1a1008]">Product listings</h2>
-                <p className="mt-1 text-sm text-[#7b6a5e]">Manage listing quality, pricing, and stock from one place.</p>
+                <h2 className="text-2xl font-bold text-[#1a1008]">Product Listings</h2>
+                <p className="mt-1 text-sm text-[#7b6a5e]">Manage inventory, pricing, and product quality.</p>
               </div>
               <button
                 onClick={openNewProduct}
                 className={primaryButtonClass}
                 type="button"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                Add product
+                <Icon name="plus" />
+                Add Product
               </button>
             </div>
 
@@ -983,15 +1007,16 @@ export default function CoopDashboard() {
                     className={primaryButtonClass}
                     type="button"
                   >
-                    Add first product
+                    <Icon name="plus" />
+                    Add Product
                   </button>
                 }
               />
             ) : (
               <>
-              <div className={`${panelClass} mb-12 hidden overflow-hidden md:block`}>
+              <div className={`${panelClass} mb-8 hidden overflow-hidden md:block`}>
                 {/* Table header */}
-                <div className="grid grid-cols-[minmax(220px,2fr)_0.8fr_0.8fr_1fr_auto] gap-4 border-b border-[#eadfd5] bg-[#fbf7f2] px-4 py-3 text-xs font-bold uppercase tracking-[0.08em] text-[#8c7b6f]">
+                <div className="grid grid-cols-[minmax(260px,2fr)_0.8fr_0.8fr_1fr_auto] gap-5 border-b border-[#eadfd5] bg-[#fbf7f2] px-5 py-4 text-xs font-bold uppercase tracking-[0.08em] text-[#8c7b6f]">
                   <span>Product</span>
                   <span>Category</span>
                   <span>Price</span>
@@ -1005,13 +1030,13 @@ export default function CoopDashboard() {
                   return (
                   <div
                     key={product._id}
-                    className={`grid grid-cols-[minmax(220px,2fr)_0.8fr_0.8fr_1fr_auto] items-center gap-4 px-4 py-3.5 ${
+                    className={`grid grid-cols-[minmax(260px,2fr)_0.8fr_0.8fr_1fr_auto] items-center gap-5 px-5 py-4.5 ${
                       idx < products.length - 1 ? "border-b border-[#f1e8df]" : ""
                     } transition-colors hover:bg-[#faf6f2]`}
                   >
                     {/* Product name + image */}
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-[#faf6f2]">
+                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-[#f0e8e0] bg-[#faf6f2]">
                         {product.images?.[0] ? (
                           <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
                         ) : (
@@ -1038,20 +1063,19 @@ export default function CoopDashboard() {
 
                     {/* Stock */}
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <StatusChip label={status.label} tone={status.tone} />
-                        <span className="text-xs font-medium text-[#8c7b6f]">{product.stock ?? 0} units</span>
-                      </div>
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#eadfd5]">
-                        <div className="h-full rounded-full bg-[#2A9D8F]" style={{ width: `${getStockPercent(product.stock)}%` }} />
+                        <span className="inline-flex h-6 items-center rounded-full border border-[#eadfd5] bg-[#fbf7f2] px-2.5 text-xs font-semibold text-[#6b5a4e]">
+                          {product.stock ?? 0} units
+                        </span>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end gap-1.5">
                       <button
                         onClick={() => setModalProduct(product)}
-                        className="rounded-lg p-2 text-[#8c7b6f] transition-colors hover:bg-[#f5eee7] hover:text-[#1a1008]"
+                        className="rounded-lg border border-transparent p-2 text-[#8c7b6f] transition-colors hover:border-[#eadfd5] hover:bg-white hover:text-[#1a1008]"
                         aria-label="Edit"
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -1060,7 +1084,7 @@ export default function CoopDashboard() {
                       </button>
                       <button
                         onClick={() => setDeleteTarget(product)}
-                        className="rounded-lg p-2 text-[#8c7b6f] transition-colors hover:bg-red-50 hover:text-red-500"
+                        className="rounded-lg border border-transparent p-2 text-[#8c7b6f] transition-colors hover:border-red-100 hover:bg-red-50 hover:text-red-500"
                         aria-label="Delete"
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -1291,7 +1315,9 @@ export default function CoopDashboard() {
         />
       )}
 
-      <Footer />
+      <footer className="border-t border-[#e4d8cc] bg-[#fbf8f3] px-4 py-5 text-center text-xs font-medium text-[#8c7b6f] sm:px-6">
+        © The Souk • Marketplace Dashboard
+      </footer>
     </div>
   );
 }
