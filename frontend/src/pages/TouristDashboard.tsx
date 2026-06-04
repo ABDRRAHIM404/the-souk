@@ -5,9 +5,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { productService } from "@/services/productService";
 import { orderService } from "@/services/orderService";
 import api from "@/services/api";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeSection from "@/components/FadeSection";
+import {
+  DashboardCard,
+  DashboardContainer,
+  DashboardMobileTabs,
+  DashboardShell,
+  DashboardSidebar,
+  DashboardStatCard,
+} from "@/components/DashboardShell";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -67,6 +74,17 @@ const secondaryButtonClass =
   "inline-flex items-center justify-center gap-2 rounded-lg border border-[#e8ddd3] bg-white px-4 py-2.5 text-sm font-semibold text-[#5f5046] transition-colors hover:bg-[#faf6f2]";
 const inputClass =
   "w-full rounded-lg border border-[#e8ddd3] bg-white px-3.5 py-2.5 text-sm text-[#1a1008] placeholder:text-[#b7a99d] transition-all focus:border-[#2A9D8F] focus:outline-none focus:ring-2 focus:ring-[#2A9D8F]/20";
+
+function DashboardIcon({ name }: { name: "orders" | "wishlist" | "reviews" | "settings" }) {
+  const paths = {
+    orders: <path d="M7 7h10M7 12h10M7 17h6M5 3h14a1 1 0 011 1v16l-3-2-3 2-3-2-3 2-3-2-3 2V4a1 1 0 011-1Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />,
+    wishlist: <path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />,
+    reviews: <path d="M4 5.5A2.5 2.5 0 016.5 3h11A2.5 2.5 0 0120 5.5v7A2.5 2.5 0 0117.5 15H9l-5 4V5.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />,
+    settings: <path d="M12 15.5A3.5 3.5 0 1012 8a3.5 3.5 0 000 7.5Zm7.4-2.2a7.8 7.8 0 000-2.6l2-1.5-2-3.5-2.4 1a8 8 0 00-2.2-1.3L14.5 3h-4l-.4 2.4A8 8 0 008 6.7l-2.4-1-2 3.5 2 1.5a7.8 7.8 0 000 2.6l-2 1.5 2 3.5 2.4-1a8 8 0 002.2 1.3l.4 2.4h4l.4-2.4a8 8 0 002.2-1.3l2.4 1 2-3.5-2.2-1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
+  };
+
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">{paths[name]}</svg>;
+}
 
 function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
@@ -427,149 +445,143 @@ export default function TouristDashboard() {
     }
   }
 
-  const deliveredOrders = orders.filter((order) => order.status === "delivered").length;
   const pendingOrders = orders.filter((order) => order.status === "pending" || order.status === "confirmed").length;
-  const latestOrderDate = orders[0]?.createdAt
-    ? new Date(orders[0].createdAt).toLocaleDateString("en-GB", { month: "short", day: "numeric" })
-    : "New";
 
   const tabs = [
-    { id: "wishlist" as const, label: "Wishlist", description: "Saved products", count: wishlist.length },
-    { id: "orders" as const, label: "Orders", description: "Purchases and status", count: orders.length },
-    { id: "reviews" as const, label: "Reviews", description: "Your feedback", count: myReviews.length },
-    { id: "settings" as const, label: "Settings", description: "Profile and security", count: null },
+    { id: "orders" as const, label: "Orders", description: "Purchases and status", count: orders.length, icon: <DashboardIcon name="orders" /> },
+    { id: "wishlist" as const, label: "Wishlist", description: "Saved products", count: wishlist.length, icon: <DashboardIcon name="wishlist" /> },
+    { id: "reviews" as const, label: "Reviews", description: "Your feedback", count: myReviews.length, icon: <DashboardIcon name="reviews" /> },
+    { id: "settings" as const, label: "Settings", description: "Profile and security", count: null, icon: <DashboardIcon name="settings" /> },
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFCF8]" style={{ paddingTop: 68 }}>
-      <Navbar />
+    <DashboardShell>
 
       <div className="border-b border-[#eadfd5] bg-[#fbf7f2]">
-        <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex min-w-0 items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#1a1008] text-lg font-bold text-white">
-                {user?.name?.charAt(0).toUpperCase() ?? "T"}
+        <DashboardContainer>
+          <div className="rounded-[2rem] border border-[#e9ded2] bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0 space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c7b6f]">Welcome back</p>
+                <h1 className="text-3xl font-semibold tracking-tight text-[#1a1008] sm:text-4xl">Welcome back, {user?.name ?? "traveller"}</h1>
+                <p className="max-w-2xl text-sm leading-7 text-[#6b5a4e]">Manage your orders, saved products and reviews in one premium account center.</p>
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Account workspace</p>
-                <h1 className="mt-1 truncate text-2xl font-bold text-[#1a1008] md:text-3xl">{user?.name ?? "Traveller"}</h1>
-                <p className="mt-1 text-sm leading-6 text-[#7b6a5e]">
-                  {user?.country ? `${user.country} · Personal shopping account` : "Personal shopping account"}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Link to="/marketplace" className={primaryButtonClass}>Explore marketplace</Link>
-                  <button type="button" onClick={() => setActiveTab("settings")} className={secondaryButtonClass}>Edit profile</button>
-                </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Link to="/marketplace" className={primaryButtonClass}>Explore marketplace</Link>
+                <button type="button" onClick={() => setActiveTab("settings")} className={secondaryButtonClass}>Edit profile</button>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[520px]">
-              {[
-                { label: "Saved", value: wishlist.length },
-                { label: "Orders", value: orders.length },
-                { label: "In progress", value: pendingOrders },
-                { label: deliveredOrders > 0 ? "Delivered" : "Latest order", value: deliveredOrders > 0 ? deliveredOrders : latestOrderDate },
-              ].map((stat) => (
-                <div key={stat.label} className="rounded-lg border border-[#eadfd5] bg-white px-3 py-2.5">
-                  <p className="text-lg font-bold leading-none text-[#1a1008]">{stat.value}</p>
-                  <p className="mt-1 text-xs font-medium text-[#8c7b6f]">{stat.label}</p>
-                </div>
-              ))}
             </div>
           </div>
-        </div>
+        </DashboardContainer>
       </div>
 
       <main className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
-        <section className="mb-6 grid gap-3 md:grid-cols-3">
-          {[
-            {
-              label: "Recent order",
-              value: orders[0] ? `#${orders[0]._id.slice(-6).toUpperCase()}` : "No orders",
-              detail: orders[0] ? `${orders[0].status} · ${formatPrice(orders[0].total)}` : "Start with the marketplace",
-              action: () => setActiveTab("orders"),
-            },
-            {
-              label: "Saved products",
-              value: wishlist.length,
-              detail: wishlist.length ? "Ready to revisit or compare" : "Save pieces you love",
-              action: () => setActiveTab("wishlist"),
-            },
-            {
-              label: "Reviews shared",
-              value: myReviews.length,
-              detail: myReviews.length ? "Helping future travellers" : "Your feedback will appear here",
-              action: () => setActiveTab("reviews"),
-            },
-          ].map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              onClick={item.action}
-              className="rounded-xl bg-white p-4 text-left shadow-[0_1px_2px_rgba(26,16,8,0.05),0_12px_34px_rgba(26,16,8,0.04)] ring-1 ring-[#eadfd5]/80 transition-colors hover:bg-[#fbf7f2]"
-            >
-              <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8c7b6f]">{item.label}</p>
-              <p className="mt-3 truncate text-xl font-bold text-[#1a1008]">{item.value}</p>
-              <p className="mt-1 truncate text-sm text-[#7b6a5e]">{item.detail}</p>
-            </button>
-          ))}
+        <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <DashboardStatCard label="Orders" value={orders.length} detail={orders.length ? "Most recent order at the top" : "No purchases yet"} />
+          <DashboardStatCard label="Saved Products" value={wishlist.length} detail={wishlist.length ? "Saved for later" : "Pick favourites in the marketplace"} />
+          <DashboardStatCard label="Reviews" value={myReviews.length} detail={myReviews.length ? "Shared with the community" : "Your feedback helps others"} />
+          <DashboardStatCard label="Active Deliveries" value={pendingOrders} detail="Waiting on cooperative confirmation or delivery" />
         </section>
-        <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
-          <aside className="sticky top-[88px] hidden lg:block">
-            <div className="overflow-hidden rounded-xl bg-white p-2 shadow-[0_1px_2px_rgba(26,16,8,0.05),0_16px_40px_rgba(26,16,8,0.05)] ring-1 ring-[#eadfd5]/80">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-3 text-left transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-[#1a1008] text-white"
-                      : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
-                  }`}
-                  type="button"
-                >
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold">{tab.label}</span>
-                    <span className={`block truncate text-xs ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>{tab.description}</span>
-                  </span>
-                  {tab.count !== null && tab.count > 0 && (
-                    <span className={`rounded-full px-2 py-0.5 text-xs ${activeTab === tab.id ? "bg-white/15 text-white" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              ))}
+
+        <section className="mb-6 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+          <DashboardCard>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c7b6f]">Recent orders</p>
+                <h2 className="mt-2 text-xl font-semibold text-[#1a1008]">Latest purchases</h2>
+              </div>
+              <button type="button" onClick={() => setActiveTab("orders")} className="rounded-2xl border border-[#e9ded2] bg-white px-4 py-2 text-sm font-semibold text-[#1a1008] transition hover:border-[#d8cbbf] hover:bg-[#faf7f2]">
+                View all
+              </button>
             </div>
-          </aside>
+            <div className="mt-5 space-y-3">
+              {orders.slice(0, 3).map((order) => (
+                <div key={order._id} className="rounded-3xl border border-[#f0e8e0] bg-[#fcfaf7] p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-[#1a1008]">Order #{order._id.slice(-6).toUpperCase()}</p>
+                      <p className="mt-1 text-xs text-[#7b6a5e]">{new Date(order.createdAt).toLocaleDateString("en-GB", { month: "short", day: "numeric" })}</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <StatusChip label={order.status.charAt(0).toUpperCase() + order.status.slice(1)} tone={getOrderTone(order.status)} />
+                      <p className="text-sm font-semibold text-[#1a1008]">{formatPrice(order.total)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {orders.length === 0 && (
+                <p className="text-sm text-[#7b6a5e]">You have not placed any orders yet. Start browsing products to make your first purchase.</p>
+              )}
+            </div>
+          </DashboardCard>
+
+          <div className="grid gap-4">
+            <DashboardCard>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c7b6f]">Saved products</p>
+                  <h2 className="mt-2 text-xl font-semibold text-[#1a1008]">Wishlist preview</h2>
+                </div>
+                <button type="button" onClick={() => setActiveTab("wishlist")} className="rounded-2xl border border-[#e9ded2] bg-white px-4 py-2 text-sm font-semibold text-[#1a1008] transition hover:border-[#d8cbbf] hover:bg-[#faf7f2]">
+                  See saved items
+                </button>
+              </div>
+              <div className="mt-5 space-y-3">
+                {wishlist.slice(0, 3).map((product) => (
+                  <div key={product._id} className="flex items-center gap-3 rounded-3xl border border-[#f0e8e0] bg-[#fcfaf7] p-4">
+                    <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-2xl bg-[#faf6f2]">
+                      {product.images?.[0] ? (
+                        <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-[#b7a99d]">No image</div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#1a1008]">{product.name}</p>
+                      <p className="mt-1 text-xs text-[#7b6a5e]">{formatCategory(product.category)}</p>
+                    </div>
+                    <p className="whitespace-nowrap text-sm font-semibold text-[#1a1008]">{formatPrice(product.price)}</p>
+                  </div>
+                ))}
+                {wishlist.length === 0 && (
+                  <p className="text-sm text-[#7b6a5e]">Save products you love while browsing the marketplace and they will appear here.</p>
+                )}
+              </div>
+            </DashboardCard>
+
+            <DashboardCard>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c7b6f]">Recent reviews</p>
+                <h2 className="mt-2 text-xl font-semibold text-[#1a1008]">Review history</h2>
+              </div>
+              <div className="mt-5 space-y-3">
+                {myReviews.slice(0, 3).map((review) => (
+                  <div key={review._id} className="rounded-3xl border border-[#f0e8e0] bg-[#fcfaf7] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-[#1a1008]">{review.product.name}</p>
+                        <p className="mt-1 text-xs text-[#7b6a5e]">{review.product.category}</p>
+                      </div>
+                      <div className="shrink-0">
+                        <StarRating rating={review.rating} size={12} />
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-[#6b5a4e] line-clamp-2">{review.comment}</p>
+                  </div>
+                ))}
+                {myReviews.length === 0 && (
+                  <p className="text-sm text-[#7b6a5e]">Write a review after purchasing to help other travellers discover trusted products.</p>
+                )}
+              </div>
+            </DashboardCard>
+          </div>
+        </section>
+
+        <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+          <DashboardSidebar items={tabs} activeItem={activeTab} onSelect={setActiveTab} label="Account" />
 
           <div className="min-w-0 lg:col-start-2">
-            <div className="sticky top-[68px] z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1 backdrop-blur lg:hidden">
-              <div className="grid min-w-[620px] grid-cols-4 gap-1 sm:min-w-0">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex min-h-12 items-center justify-between gap-3 rounded-lg px-3 text-left transition-colors sm:px-4 ${
-                      activeTab === tab.id
-                        ? "bg-[#1a1008] text-white"
-                        : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
-                    }`}
-                    type="button"
-                  >
-                    <span>
-                      <span className="block text-sm font-semibold">{tab.label}</span>
-                      <span className={`hidden text-xs md:block ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>{tab.description}</span>
-                    </span>
-                    {tab.count !== null && tab.count > 0 && (
-                      <span className={`rounded-full px-2 py-0.5 text-xs ${activeTab === tab.id ? "bg-white/15 text-white" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
-                        {tab.count}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <DashboardMobileTabs items={tabs} activeItem={activeTab} onSelect={setActiveTab} />
 
         {activeTab === "wishlist" && (
           <FadeSection>
@@ -718,6 +730,6 @@ export default function TouristDashboard() {
       </main>
 
       <Footer />
-    </div>
+    </DashboardShell>
   );
 }

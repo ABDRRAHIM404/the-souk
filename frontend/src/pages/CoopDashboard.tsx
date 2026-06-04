@@ -5,14 +5,20 @@ import { coopService } from "@/services/coopService";
 import { orderService } from "@/services/orderService";
 import api from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
-import Navbar from "@/components/Navbar";
 import FadeSection from "@/components/FadeSection";
+import {
+  DashboardCard,
+  DashboardContainer,
+  DashboardMobileTabs,
+  DashboardShell,
+  DashboardSidebar,
+  DashboardStatCard,
+} from "@/components/DashboardShell";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { mediaUrl } from "@/utils/media";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES: ProductCategory[] = ["argan", "carpets", "saffron", "pottery", "food", "leather", "other"];
@@ -166,18 +172,6 @@ function Icon({ name, className = "" }: { name: "plus" | "store" | "box" | "star
   };
 
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">{paths[name]}</svg>;
-}
-
-function StatCard({ label, value, detail }: { label: string; value: string | number; detail: string }) {
-  return (
-    <div className="rounded-xl bg-white p-4 shadow-[0_1px_2px_rgba(26,16,8,0.05),0_10px_30px_rgba(26,16,8,0.04)] ring-1 ring-[#eadfd5]/80">
-      <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8c7b6f]">{label}</p>
-      <div className="mt-3">
-        <p className="text-2xl font-bold leading-none text-[#1a1008]">{value}</p>
-        <p className="mt-2 text-xs font-medium text-[#9a8a7a]">{detail}</p>
-      </div>
-    </div>
-  );
 }
 
 function StatusChip({ label, tone }: { label: string; tone: "success" | "warning" | "danger" | "neutral" }) {
@@ -1027,9 +1021,6 @@ export default function CoopDashboard() {
   const lowStockProducts = products.filter((p) => p.stock > 0 && p.stock <= 5).length;
   const pendingOrders = orders.filter((order) => order.status === "pending").length;
   const confirmedOrders = orders.filter((order) => order.status === "confirmed").length;
-  const orderRevenue = orders
-    .filter((order) => order.status !== "cancelled")
-    .reduce((sum, order) => sum + order.total, 0);
   const avgRating = reviews.length
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : null;
@@ -1044,133 +1035,130 @@ export default function CoopDashboard() {
   };
 
   const tabs = [
-    { id: "products" as const, label: "Products", description: "Inventory and listings", count: products.length, icon: "box" as const },
-    { id: "orders" as const, label: "Orders", description: "Fulfillment queue", count: orders.length, icon: "orders" as const },
-    { id: "reviews" as const, label: "Reviews", description: "Customer feedback", count: reviews.length, icon: "review" as const },
-    { id: "settings" as const, label: "Settings", description: "Storefront and access", count: null, icon: "settings" as const },
+    { id: "products" as const, label: "Products", description: "Inventory and listings", count: products.length, icon: <Icon name="box" /> },
+    { id: "orders" as const, label: "Orders", description: "Fulfillment queue", count: orders.length, icon: <Icon name="orders" /> },
+    { id: "reviews" as const, label: "Reviews", description: "Customer feedback", count: reviews.length, icon: <Icon name="review" /> },
+    { id: "settings" as const, label: "Settings", description: "Storefront and access", count: null, icon: <Icon name="settings" /> },
   ];
   const coopName = coop?.name ?? user?.name ?? "Cooperative";
   const isVerified = Boolean(coop?.verified || coop?.isCertified);
 
   return (
-    <div className="min-h-screen bg-[#FFFCF8]" style={{ paddingTop: 68 }}>
-      <Navbar />
+    <DashboardShell>
 
-      {/* Header */}
       <div className="border-b border-[#eadfd5] bg-[#fbf7f2]">
-        <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#1a1008] text-xl font-bold text-white shadow-[0_8px_20px_rgba(26,16,8,0.14)]">
-                {coop?.logo ? <img src={mediaUrl(coop.logo)} alt={coopName} className="h-full w-full object-cover" /> : coopName.charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Cooperative workspace</p>
-                <h1 className="mt-1 truncate text-2xl font-bold tracking-normal text-[#1a1008] sm:text-3xl">
-                  {coopName}
-                </h1>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm font-medium text-[#6b5a4e]">
+        <DashboardContainer>
+          <div className="rounded-[2rem] border border-[#e9ded2] bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0 space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c7b6f]">Premium workspace</p>
+                <h1 className="text-3xl font-semibold tracking-tight text-[#1a1008] sm:text-4xl">{coopName}</h1>
+                <div className="flex flex-wrap items-center gap-3 text-sm text-[#6b5a4e]">
                   {isVerified && (
-                    <span className="inline-flex items-center rounded-full border border-[#b9dfd8] bg-[#edf8f6] px-2.5 py-1 text-xs font-bold text-[#19786d]">
+                    <span className="inline-flex items-center rounded-full border border-[#b9dfd8] bg-[#edf8f6] px-3 py-1 text-xs font-semibold text-[#19786d]">
                       Verified Cooperative
                     </span>
                   )}
                   <span>{getCoopLocation(coop)}</span>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <button onClick={openNewProduct} className={primaryButtonClass} type="button">
-                <Icon name="plus" />
-                Add Product
-              </button>
-              {coopId && (
-                <a href={`/coops/${coopId}`} className={secondaryButtonClass}>
-                  <Icon name="store" />
-                  View Storefront
-                </a>
-              )}
+              <div className="flex flex-wrap items-center gap-3">
+                <button onClick={openNewProduct} className={primaryButtonClass} type="button">
+                  <Icon name="plus" />
+                  Add Product
+                </button>
+                {coopId && (
+                  <a href={`/coops/${coopId}`} className={secondaryButtonClass}>
+                    <Icon name="store" />
+                    View Storefront
+                  </a>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        </DashboardContainer>
       </div>
 
       <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <section className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <StatCard label="Active Listings" value={activeProducts} detail={`${products.length} total product${products.length === 1 ? "" : "s"}`} />
-          <StatCard label="Open Orders" value={pendingOrders + confirmedOrders} detail={`${pendingOrders} pending, ${confirmedOrders} confirmed`} />
-          <StatCard label="Order Value" value={formatPrice(orderRevenue)} detail="Non-cancelled order total" />
-          <StatCard label="Units In Stock" value={totalStock} detail="Available across all listings" />
-          <StatCard label="Low Stock Products" value={lowStockProducts} detail="Products at 5 units or fewer" />
+        <section className="mb-6 grid gap-4 xl:grid-cols-4">
+          <DashboardStatCard label="Active Listings" value={activeProducts} detail={`${products.length} total product${products.length === 1 ? "" : "s"}`} />
+          <DashboardStatCard label="Open Orders" value={pendingOrders + confirmedOrders} detail={`${pendingOrders} pending, ${confirmedOrders} confirmed`} />
+          <DashboardStatCard label="Units in Stock" value={totalStock} detail="Available across all listings" />
+          <DashboardStatCard label="Average Rating" value={avgRating ? avgRating.toFixed(1) : "N/A"} detail={`${reviews.length} review${reviews.length === 1 ? "" : "s"}`} />
+        </section>
+
+        <section className="mb-6 grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
+          <DashboardCard>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c7b6f]">Recent orders</p>
+                <h2 className="mt-2 text-xl font-semibold text-[#1a1008]">Order activity</h2>
+              </div>
+              <button type="button" onClick={() => setActiveTab("orders")} className="rounded-2xl border border-[#e9ded2] bg-white px-4 py-2 text-sm font-semibold text-[#1a1008] transition hover:border-[#d8cbbf] hover:bg-[#faf7f2]">
+                View all
+              </button>
+            </div>
+            <div className="mt-5 space-y-3">
+              {orders.slice(0, 4).map((order) => {
+                const tourist = getTourist(order);
+                return (
+                  <div key={order._id} className="rounded-3xl border border-[#f0e8e0] bg-[#fcfaf7] p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-[#1a1008]">Order #{order._id.slice(-6).toUpperCase()}</p>
+                        <p className="mt-1 text-xs text-[#7b6a5e]">{tourist.name} · {new Date(order.createdAt).toLocaleDateString("en-GB", { month: "short", day: "numeric" })}</p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <StatusChip label={order.status.charAt(0).toUpperCase() + order.status.slice(1)} tone={getOrderTone(order.status)} />
+                        <span className="text-sm font-semibold text-[#1a1008]">{formatPrice(order.total)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {orders.length === 0 && <p className="text-sm text-[#7b6a5e]">Incoming purchases will appear here as soon as tourists place orders.</p>}
+            </div>
+          </DashboardCard>
+
+          <DashboardCard>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c7b6f]">Inventory health</p>
+                <h2 className="mt-2 text-xl font-semibold text-[#1a1008]">Stock alerts</h2>
+              </div>
+              <StatusChip label={`${lowStockProducts} warnings`} tone={lowStockProducts ? "warning" : "success"} />
+            </div>
+            <div className="mt-5 space-y-3">
+              {products
+                .filter((product) => product.stock <= 5 || product.isAvailable === false)
+                .slice(0, 4)
+                .map((product) => {
+                  const status = getProductStatus(product);
+                  return (
+                    <button key={product._id} type="button" onClick={() => setModalProduct(product)} className="flex w-full items-center justify-between gap-4 rounded-3xl border border-[#f0e8e0] bg-[#fcfaf7] p-4 text-left transition hover:bg-[#faf6f2]">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-[#1a1008]">{product.name}</p>
+                        <p className="mt-1 text-xs text-[#7b6a5e]">{product.stock ?? 0} units available</p>
+                      </div>
+                      <StatusChip label={status.label} tone={status.tone} />
+                    </button>
+                  );
+                })}
+              {products.length === 0 ? (
+                <p className="text-sm text-[#7b6a5e]">Add products to monitor stock levels and listing status.</p>
+              ) : lowStockProducts === 0 ? (
+                <p className="text-sm text-[#7b6a5e]">All active listings have healthy stock levels.</p>
+              ) : null}
+            </div>
+          </DashboardCard>
         </section>
 
         <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-          {/* Desktop navigation */}
-          <aside className="sticky top-23 hidden lg:block">
-            <div className="overflow-hidden rounded-xl bg-white p-3 shadow-[0_1px_2px_rgba(26,16,8,0.05),0_16px_40px_rgba(26,16,8,0.05)] ring-1 ring-[#eadfd5]/80">
-              <p className="px-3 pb-3 pt-1 text-xs font-bold uppercase tracking-[0.12em] text-[#9a8a7a]">Manage</p>
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-3.5 text-left transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-[#f0f8f6] text-[#123f39] ring-1 ring-[#c8e5df]"
-                      : "text-[#6b5a4e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
-                  }`}
-                  type="button"
-                >
-                  <span className="flex min-w-0 items-center gap-3">
-                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${activeTab === tab.id ? "bg-white text-[#19786d]" : "bg-[#fbf7f2] text-[#8c7b6f]"}`}>
-                      <Icon name={tab.icon} />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-sm font-bold">{tab.label}</span>
-                      <span className="block truncate text-xs text-[#8c7b6f]">{tab.description}</span>
-                    </span>
-                  </span>
-                  {tab.count !== null && tab.count > 0 && (
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${activeTab === tab.id ? "bg-white text-[#19786d]" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </aside>
+          <DashboardSidebar items={tabs} activeItem={activeTab} onSelect={setActiveTab} label="Manage" />
 
           <div className="min-w-0 lg:col-start-2">
-            {/* Mobile tabs */}
-            <div className="sticky top-17 z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1.5 backdrop-blur lg:hidden">
-              <div className="grid min-w-[560px] grid-cols-4 gap-1 sm:min-w-0">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex min-h-12 items-center justify-center gap-2 rounded-lg px-3 text-left transition-colors sm:justify-between sm:px-4 ${
-                      activeTab === tab.id
-                        ? "bg-[#1a1008] text-white"
-                        : "text-[#7b6a5e] hover:bg-[#faf6f2] hover:text-[#1a1008]"
-                    }`}
-                    type="button"
-                  >
-                    <Icon name={tab.icon} className="shrink-0" />
-                    <span className="min-w-0">
-                      <span className="block text-sm font-semibold">{tab.label}</span>
-                      <span className={`hidden text-xs sm:block ${activeTab === tab.id ? "text-white/70" : "text-[#9a8a7a]"}`}>
-                        {tab.description}
-                      </span>
-                    </span>
-                    {tab.count !== null && tab.count > 0 && (
-                      <span className={`rounded-full px-2 py-0.5 text-xs ${activeTab === tab.id ? "bg-white/15 text-white" : "bg-[#f0e8e0] text-[#6b5a4e]"}`}>
-                        {tab.count}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <DashboardMobileTabs items={tabs} activeItem={activeTab} onSelect={setActiveTab} />
 
         {/* ── Products Tab ──────────────────────────────────────────────────── */}
         {activeTab === "products" && (
@@ -1549,6 +1537,6 @@ export default function CoopDashboard() {
       <footer className="border-t border-[#e4d8cc] bg-[#fbf8f3] px-4 py-5 text-center text-xs font-medium text-[#8c7b6f] sm:px-6">
         © The Souk • Marketplace Dashboard
       </footer>
-    </div>
+    </DashboardShell>
   );
 }
