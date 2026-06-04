@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { Product, Cooperative, ProductCategory } from "@/types";
+import type { Product, Cooperative, ProductCategory, Order } from "@/types";
 import { productService } from "@/services/productService";
 import { coopService } from "@/services/coopService";
+import { orderService } from "@/services/orderService";
 import api from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
@@ -151,7 +152,7 @@ function getCoopLocation(coop: Cooperative | null) {
   return place ? `${place}, Morocco` : "Set up your profile to help shoppers find your cooperative.";
 }
 
-function Icon({ name, className = "" }: { name: "plus" | "store" | "box" | "star" | "settings" | "review" | "empty"; className?: string }) {
+function Icon({ name, className = "" }: { name: "plus" | "store" | "box" | "star" | "settings" | "review" | "empty" | "orders" | "trend"; className?: string }) {
   const paths = {
     plus: <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />,
     store: <path d="M4 10h16l-1.2-5.2A1 1 0 0017.8 4H6.2a1 1 0 00-1 .8L4 10Zm1 0v10h14V10M9 20v-6h6v6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />,
@@ -160,6 +161,8 @@ function Icon({ name, className = "" }: { name: "plus" | "store" | "box" | "star
     settings: <path d="M12 15.5A3.5 3.5 0 1012 8a3.5 3.5 0 000 7.5Zm7.4-2.2a7.8 7.8 0 000-2.6l2-1.5-2-3.5-2.4 1a8 8 0 00-2.2-1.3L14.5 3h-4l-.4 2.4A8 8 0 008 6.7l-2.4-1-2 3.5 2 1.5a7.8 7.8 0 000 2.6l-2 1.5 2 3.5 2.4-1a8 8 0 002.2 1.3l.4 2.4h4l.4-2.4a8 8 0 002.2-1.3l2.4 1 2-3.5-2.2-1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
     review: <path d="M4 5.5A2.5 2.5 0 016.5 3h11A2.5 2.5 0 0120 5.5v7A2.5 2.5 0 0117.5 15H9l-5 4V5.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />,
     empty: <path d="M5 8h14M7 8v11h10V8M10 8V6a2 2 0 014 0v2M9.5 13h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />,
+    orders: <path d="M7 7h10M7 12h10M7 17h6M5 3h14a1 1 0 011 1v16l-3-2-3 2-3-2-3 2-3-2-3 2V4a1 1 0 011-1Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />,
+    trend: <path d="M4 17l5-5 4 4 7-8M15 8h5v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />,
   };
 
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">{paths[name]}</svg>;
@@ -167,10 +170,10 @@ function Icon({ name, className = "" }: { name: "plus" | "store" | "box" | "star
 
 function StatCard({ label, value, detail }: { label: string; value: string | number; detail: string }) {
   return (
-    <div className="flex min-h-30 flex-col justify-between rounded-xl border border-[#eadfd5] bg-white p-5 shadow-[0_1px_2px_rgba(26,16,8,0.04)]">
-      <p className="text-sm font-semibold text-[#7b6a5e]">{label}</p>
-      <div className="mt-5">
-        <p className="text-3xl font-bold leading-none text-[#1a1008] sm:text-4xl">{value}</p>
+    <div className="rounded-xl bg-white p-4 shadow-[0_1px_2px_rgba(26,16,8,0.05),0_10px_30px_rgba(26,16,8,0.04)] ring-1 ring-[#eadfd5]/80">
+      <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8c7b6f]">{label}</p>
+      <div className="mt-3">
+        <p className="text-2xl font-bold leading-none text-[#1a1008]">{value}</p>
         <p className="mt-2 text-xs font-medium text-[#9a8a7a]">{detail}</p>
       </div>
     </div>
@@ -657,10 +660,156 @@ function DeleteConfirmModal({ product, onConfirm, onCancel }: { product: Product
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
+function getOrderTone(status: Order["status"]): "success" | "warning" | "danger" | "neutral" {
+  if (status === "delivered") return "success";
+  if (status === "cancelled") return "danger";
+  if (status === "confirmed") return "neutral";
+  return "warning";
+}
+
+function getOrderItemSummary(order: Order) {
+  const firstItem = order.items[0];
+  const firstProduct = typeof firstItem?.product === "object" ? firstItem.product : null;
+  const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+  return {
+    itemCount,
+    title: firstProduct?.name ?? "Marketplace order",
+    image: firstProduct?.images?.[0],
+    extra: itemCount > 1 ? `+${itemCount - 1} more` : "Single item",
+  };
+}
+
+function getTourist(order: Order) {
+  if (typeof order.tourist === "object") {
+    return {
+      name: order.tourist.name,
+      email: order.tourist.email,
+      country: order.tourist.country,
+    };
+  }
+  return { name: "Tourist", email: "", country: "" };
+}
+
+function OrderActions({
+  order,
+  busy,
+  onUpdate,
+}: {
+  order: Order;
+  busy: boolean;
+  onUpdate: (id: string, status: "confirmed" | "delivered" | "cancelled") => void;
+}) {
+  if (order.status === "pending") {
+    return (
+      <div className="flex flex-wrap justify-end gap-2">
+        <button type="button" disabled={busy} onClick={() => onUpdate(order._id, "confirmed")} className="rounded-lg bg-[#1a1008] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[#332216] disabled:opacity-50">
+          Confirm
+        </button>
+        <button type="button" disabled={busy} onClick={() => onUpdate(order._id, "cancelled")} className="rounded-lg border border-red-100 bg-white px-3 py-2 text-xs font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50">
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  if (order.status === "confirmed") {
+    return (
+      <div className="flex justify-end">
+        <button type="button" disabled={busy} onClick={() => onUpdate(order._id, "delivered")} className="rounded-lg bg-[#19786d] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[#15655c] disabled:opacity-50">
+          Mark Delivered
+        </button>
+      </div>
+    );
+  }
+
+  return <span className="block text-right text-xs font-medium text-[#9a8a7a]">No actions</span>;
+}
+
+function OrdersTable({
+  orders,
+  updatingOrderId,
+  onUpdate,
+}: {
+  orders: Order[];
+  updatingOrderId: string | null;
+  onUpdate: (id: string, status: "confirmed" | "delivered" | "cancelled") => void;
+}) {
+  return (
+    <>
+      <div className={`${panelClass} hidden overflow-hidden lg:block`}>
+        <div className="grid grid-cols-[minmax(240px,1.4fr)_1fr_0.7fr_0.8fr_1fr] gap-5 border-b border-[#eadfd5] bg-[#fbf7f2] px-5 py-3 text-xs font-bold uppercase tracking-[0.08em] text-[#8c7b6f]">
+          <span>Order</span>
+          <span>Customer</span>
+          <span>Total</span>
+          <span>Status</span>
+          <span className="text-right">Next Step</span>
+        </div>
+        {orders.map((order, idx) => {
+          const summary = getOrderItemSummary(order);
+          const tourist = getTourist(order);
+          const busy = updatingOrderId === order._id;
+          return (
+            <div key={order._id} className={`grid grid-cols-[minmax(240px,1.4fr)_1fr_0.7fr_0.8fr_1fr] items-center gap-5 px-5 py-4 transition-colors hover:bg-[#faf6f2] ${idx < orders.length - 1 ? "border-b border-[#f1e8df]" : ""}`}>
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#faf6f2] text-[#b7a99d] ring-1 ring-[#f0e8e0]">
+                  {summary.image ? <img src={summary.image} alt={summary.title} className="h-full w-full object-cover" /> : <Icon name="orders" />}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-[#1a1008]">#{order._id.slice(-6).toUpperCase()}</p>
+                  <p className="mt-0.5 truncate text-xs text-[#8c7b6f]">{summary.title} - {summary.extra}</p>
+                </div>
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-[#1a1008]">{tourist.name}</p>
+                <p className="truncate text-xs text-[#8c7b6f]">{tourist.country || tourist.email || "Customer details"}</p>
+              </div>
+              <span className="text-sm font-bold text-[#1a1008]">{formatPrice(order.total)}</span>
+              <StatusChip label={order.status.charAt(0).toUpperCase() + order.status.slice(1)} tone={getOrderTone(order.status)} />
+              <OrderActions order={order} busy={busy} onUpdate={onUpdate} />
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="space-y-3 lg:hidden">
+        {orders.map((order) => {
+          const summary = getOrderItemSummary(order);
+          const tourist = getTourist(order);
+          const busy = updatingOrderId === order._id;
+          return (
+            <article key={order._id} className={`${panelClass} p-4`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[#1a1008]">Order #{order._id.slice(-6).toUpperCase()}</p>
+                  <p className="mt-1 truncate text-xs text-[#8c7b6f]">{summary.title} - {summary.extra}</p>
+                </div>
+                <StatusChip label={order.status.charAt(0).toUpperCase() + order.status.slice(1)} tone={getOrderTone(order.status)} />
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+                <div className="rounded-lg bg-[#fbf7f2] px-3 py-2">
+                  <p className="text-xs text-[#8c7b6f]">Customer</p>
+                  <p className="truncate font-semibold text-[#1a1008]">{tourist.name}</p>
+                </div>
+                <div className="rounded-lg bg-[#fbf7f2] px-3 py-2">
+                  <p className="text-xs text-[#8c7b6f]">Total</p>
+                  <p className="font-semibold text-[#1a1008]">{formatPrice(order.total)}</p>
+                </div>
+              </div>
+              <div className="mt-3">
+                <OrderActions order={order} busy={busy} onUpdate={onUpdate} />
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
 export default function CoopDashboard() {
   const { user, refreshAuth } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<"products" | "reviews" | "settings">("products");
+  const [activeTab, setActiveTab] = useState<"products" | "orders" | "reviews" | "settings">("products");
 
   // Products
   const [products, setProducts] = useState<Product[]>([]);
@@ -675,6 +824,11 @@ export default function CoopDashboard() {
   interface CoopReview { _id: string; userName: string; rating: number; comment: string; productName?: string; createdAt: string; }
   const [reviews, setReviews] = useState<CoopReview[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
+
+  // Orders
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   // Coop settings form
   const coopForm = useForm<CoopSettingsForm>({
@@ -758,6 +912,26 @@ export default function CoopDashboard() {
     load();
   }, [user, coopForm]);
 
+  // Fetch incoming orders
+  useEffect(() => {
+    async function load() {
+      if (!user?.cooperativeId) {
+        setLoadingOrders(false);
+        return;
+      }
+      try {
+        setLoadingOrders(true);
+        const data = await orderService.getCoopOrders();
+        setOrders(data ?? []);
+      } catch {
+        setOrders([]);
+      } finally {
+        setLoadingOrders(false);
+      }
+    }
+    load();
+  }, [user]);
+
   // Sync account form when user loads
   useEffect(() => {
     if (user) {
@@ -834,10 +1008,28 @@ export default function CoopDashboard() {
     }
   }
 
+  async function handleOrderStatus(orderId: string, status: "confirmed" | "delivered" | "cancelled") {
+    try {
+      setUpdatingOrderId(orderId);
+      const saved = await orderService.updateStatus(orderId, status);
+      setOrders((prev) => prev.map((order) => order._id === orderId ? { ...order, status: saved.status, updatedAt: saved.updatedAt } : order));
+      toast.success("Order updated");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Could not update order"));
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  }
+
   // Summary stats
   const totalStock = products.reduce((sum, p) => sum + (p.stock ?? 0), 0);
   const activeProducts = products.filter((p) => p.stock > 0 && p.isAvailable !== false).length;
   const lowStockProducts = products.filter((p) => p.stock > 0 && p.stock <= 5).length;
+  const pendingOrders = orders.filter((order) => order.status === "pending").length;
+  const confirmedOrders = orders.filter((order) => order.status === "confirmed").length;
+  const orderRevenue = orders
+    .filter((order) => order.status !== "cancelled")
+    .reduce((sum, order) => sum + order.total, 0);
   const avgRating = reviews.length
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : null;
@@ -853,6 +1045,7 @@ export default function CoopDashboard() {
 
   const tabs = [
     { id: "products" as const, label: "Products", description: "Inventory and listings", count: products.length, icon: "box" as const },
+    { id: "orders" as const, label: "Orders", description: "Fulfillment queue", count: orders.length, icon: "orders" as const },
     { id: "reviews" as const, label: "Reviews", description: "Customer feedback", count: reviews.length, icon: "review" as const },
     { id: "settings" as const, label: "Settings", description: "Storefront and access", count: null, icon: "settings" as const },
   ];
@@ -860,19 +1053,20 @@ export default function CoopDashboard() {
   const isVerified = Boolean(coop?.verified || coop?.isCertified);
 
   return (
-    <div className="min-h-screen bg-[#f7f4ef]" style={{ paddingTop: 68 }}>
+    <div className="min-h-screen bg-[#FFFCF8]" style={{ paddingTop: 68 }}>
       <Navbar />
 
       {/* Header */}
-      <div className="border-b border-[#e4d8cc] bg-[#fbf8f3]">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="border-b border-[#eadfd5] bg-[#fbf7f2]">
+        <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 items-center gap-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#e6dacf] bg-[#1a1008] text-2xl font-bold text-white shadow-[0_1px_2px_rgba(26,16,8,0.08)]">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#1a1008] text-xl font-bold text-white shadow-[0_8px_20px_rgba(26,16,8,0.14)]">
                 {coop?.logo ? <img src={mediaUrl(coop.logo)} alt={coopName} className="h-full w-full object-cover" /> : coopName.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <h1 className="truncate text-3xl font-bold tracking-normal text-[#1a1008] sm:text-4xl">
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Cooperative workspace</p>
+                <h1 className="mt-1 truncate text-2xl font-bold tracking-normal text-[#1a1008] sm:text-3xl">
                   {coopName}
                 </h1>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-sm font-medium text-[#6b5a4e]">
@@ -902,18 +1096,19 @@ export default function CoopDashboard() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <section className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <StatCard label="Active Listings" value={activeProducts} detail={`${products.length} total product${products.length === 1 ? "" : "s"}`} />
+          <StatCard label="Open Orders" value={pendingOrders + confirmedOrders} detail={`${pendingOrders} pending, ${confirmedOrders} confirmed`} />
+          <StatCard label="Order Value" value={formatPrice(orderRevenue)} detail="Non-cancelled order total" />
           <StatCard label="Units In Stock" value={totalStock} detail="Available across all listings" />
           <StatCard label="Low Stock Products" value={lowStockProducts} detail="Products at 5 units or fewer" />
-          <StatCard label="Average Rating" value={avgRating !== null ? avgRating.toFixed(1) : "New"} detail={`${reviews.length} review${reviews.length === 1 ? "" : "s"} received`} />
         </section>
 
         <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
           {/* Desktop navigation */}
           <aside className="sticky top-23 hidden lg:block">
-            <div className={`${panelClass} overflow-hidden p-3`}>
+            <div className="overflow-hidden rounded-xl bg-white p-3 shadow-[0_1px_2px_rgba(26,16,8,0.05),0_16px_40px_rgba(26,16,8,0.05)] ring-1 ring-[#eadfd5]/80">
               <p className="px-3 pb-3 pt-1 text-xs font-bold uppercase tracking-[0.12em] text-[#9a8a7a]">Manage</p>
               {tabs.map((tab) => (
                 <button
@@ -947,8 +1142,8 @@ export default function CoopDashboard() {
 
           <div className="min-w-0 lg:col-start-2">
             {/* Mobile tabs */}
-            <div className="sticky top-17 z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#fbf8f3]/95 p-1.5 backdrop-blur lg:hidden">
-              <div className="grid min-w-max grid-cols-3 gap-1 sm:min-w-0">
+            <div className="sticky top-17 z-20 mb-6 overflow-x-auto rounded-xl border border-[#eadfd5] bg-[#FFFCF8]/95 p-1.5 backdrop-blur lg:hidden">
+              <div className="grid min-w-[560px] grid-cols-4 gap-1 sm:min-w-0">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -1112,6 +1307,42 @@ export default function CoopDashboard() {
         )}
 
         {/* ── Reviews Tab ──────────────────────────────────────────────────── */}
+        {activeTab === "orders" && (
+          <FadeSection>
+            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Fulfillment</p>
+                <h2 className="mt-1 text-xl font-bold text-[#1a1008]">Incoming orders</h2>
+                <p className="mt-1 text-sm text-[#7b6a5e]">Confirm new purchases, mark fulfilled orders as delivered, and monitor customer demand.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:min-w-[260px]">
+                <div className="rounded-lg bg-white px-3 py-2 shadow-[0_1px_2px_rgba(26,16,8,0.04)] ring-1 ring-[#eadfd5]/80">
+                  <p className="text-xs text-[#8c7b6f]">Pending</p>
+                  <p className="text-lg font-bold text-[#1a1008]">{pendingOrders}</p>
+                </div>
+                <div className="rounded-lg bg-white px-3 py-2 shadow-[0_1px_2px_rgba(26,16,8,0.04)] ring-1 ring-[#eadfd5]/80">
+                  <p className="text-xs text-[#8c7b6f]">Confirmed</p>
+                  <p className="text-lg font-bold text-[#1a1008]">{confirmedOrders}</p>
+                </div>
+              </div>
+            </div>
+
+            {loadingOrders ? (
+              <LoadingRows />
+            ) : orders.length === 0 ? (
+              <EmptyState
+                title="No incoming orders yet"
+                description="Orders from tourists will appear here with customer details, item counts, totals, and fulfillment actions."
+                action={<button onClick={() => setActiveTab("products")} className={secondaryButtonClass} type="button">Review products</button>}
+              />
+            ) : (
+              <div className="pb-12">
+                <OrdersTable orders={orders} updatingOrderId={updatingOrderId} onUpdate={handleOrderStatus} />
+              </div>
+            )}
+          </FadeSection>
+        )}
+
         {activeTab === "reviews" && (
           <FadeSection>
             <div className="mb-4">

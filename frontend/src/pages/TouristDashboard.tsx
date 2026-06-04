@@ -445,14 +445,14 @@ export default function TouristDashboard() {
       <Navbar />
 
       <div className="border-b border-[#eadfd5] bg-[#fbf7f2]">
-        <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6">
+        <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 items-start gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#1a1008] text-lg font-bold text-white">
                 {user?.name?.charAt(0).toUpperCase() ?? "T"}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Tourist dashboard</p>
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Account workspace</p>
                 <h1 className="mt-1 truncate text-2xl font-bold text-[#1a1008] md:text-3xl">{user?.name ?? "Traveller"}</h1>
                 <p className="mt-1 text-sm leading-6 text-[#7b6a5e]">
                   {user?.country ? `${user.country} · Personal shopping account` : "Personal shopping account"}
@@ -481,10 +481,43 @@ export default function TouristDashboard() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7">
+      <main className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+        <section className="mb-6 grid gap-3 md:grid-cols-3">
+          {[
+            {
+              label: "Recent order",
+              value: orders[0] ? `#${orders[0]._id.slice(-6).toUpperCase()}` : "No orders",
+              detail: orders[0] ? `${orders[0].status} · ${formatPrice(orders[0].total)}` : "Start with the marketplace",
+              action: () => setActiveTab("orders"),
+            },
+            {
+              label: "Saved products",
+              value: wishlist.length,
+              detail: wishlist.length ? "Ready to revisit or compare" : "Save pieces you love",
+              action: () => setActiveTab("wishlist"),
+            },
+            {
+              label: "Reviews shared",
+              value: myReviews.length,
+              detail: myReviews.length ? "Helping future travellers" : "Your feedback will appear here",
+              action: () => setActiveTab("reviews"),
+            },
+          ].map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={item.action}
+              className="rounded-xl bg-white p-4 text-left shadow-[0_1px_2px_rgba(26,16,8,0.05),0_12px_34px_rgba(26,16,8,0.04)] ring-1 ring-[#eadfd5]/80 transition-colors hover:bg-[#fbf7f2]"
+            >
+              <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8c7b6f]">{item.label}</p>
+              <p className="mt-3 truncate text-xl font-bold text-[#1a1008]">{item.value}</p>
+              <p className="mt-1 truncate text-sm text-[#7b6a5e]">{item.detail}</p>
+            </button>
+          ))}
+        </section>
         <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
           <aside className="sticky top-[88px] hidden lg:block">
-            <div className={`${panelClass} overflow-hidden p-1`}>
+            <div className="overflow-hidden rounded-xl bg-white p-2 shadow-[0_1px_2px_rgba(26,16,8,0.05),0_16px_40px_rgba(26,16,8,0.05)] ring-1 ring-[#eadfd5]/80">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
