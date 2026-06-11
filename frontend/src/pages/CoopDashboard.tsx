@@ -9,11 +9,15 @@ import FadeSection from "@/components/FadeSection";
 import {
   DashboardCard,
   DashboardContainer,
+  DashboardEmptyState,
   DashboardMobileTabs,
+  DashboardPageHeader,
   DashboardShell,
   DashboardSidebar,
   DashboardStatCard,
+  DashboardTopBar,
 } from "@/components/DashboardShell";
+import StatusChip from "@/components/ui/StatusChip";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
@@ -174,21 +178,6 @@ function Icon({ name, className = "" }: { name: "plus" | "store" | "box" | "star
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">{paths[name]}</svg>;
 }
 
-function StatusChip({ label, tone }: { label: string; tone: "success" | "warning" | "danger" | "neutral" }) {
-  const tones = {
-    success: "border-[#b9dfd8] bg-[#edf8f6] text-[#19786d]",
-    warning: "border-[#ead9a2] bg-[#fff8e5] text-[#8b6417]",
-    danger: "border-[#f1c5bc] bg-[#fff0ed] text-[#b4442e]",
-    neutral: "border-[#e8ddd3] bg-[#faf6f2] text-[#6b5a4e]",
-  };
-
-  return (
-    <span className={`inline-flex h-6 shrink-0 items-center rounded-full border px-2.5 text-xs font-semibold ${tones[tone]}`}>
-      {label}
-    </span>
-  );
-}
-
 function LoadingRows() {
   return (
     <div className={`${panelClass} overflow-hidden`}>
@@ -212,27 +201,6 @@ function LoadingRows() {
           <div className="h-8 w-16 animate-pulse self-center rounded-lg bg-[#f2ebe4]" />
         </div>
       ))}
-    </div>
-  );
-}
-
-function EmptyState({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className={`${panelClass} flex min-h-80 flex-col items-center justify-center px-6 py-12 text-center`}>
-      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-[#d9eee9] bg-[#edf8f6] text-[#19786d]">
-        <Icon name="empty" className="h-7 w-7" />
-      </div>
-      <h3 className="text-lg font-bold text-[#1a1008]">{title}</h3>
-      <p className="mt-2 max-w-md text-sm leading-6 text-[#7b6a5e]">{description}</p>
-      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 }
@@ -1045,47 +1013,39 @@ export default function CoopDashboard() {
 
   return (
     <DashboardShell>
+      <DashboardTopBar role="coop_owner" />
 
-      <div className="border-b border-[#eadfd5] bg-[#fbf7f2]">
-        <DashboardContainer>
-          <div className="rounded-[2rem] border border-[#e9ded2] bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0 space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c7b6f]">Premium workspace</p>
-                <h1 className="text-3xl font-semibold tracking-tight text-[#1a1008] sm:text-4xl">{coopName}</h1>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-[#6b5a4e]">
-                  {isVerified && (
-                    <span className="inline-flex items-center rounded-full border border-[#b9dfd8] bg-[#edf8f6] px-3 py-1 text-xs font-semibold text-[#19786d]">
-                      Verified Cooperative
-                    </span>
-                  )}
-                  <span>{getCoopLocation(coop)}</span>
-                </div>
-              </div>
+      <DashboardContainer className="!pb-4 !pt-5">
+        <DashboardPageHeader
+          eyebrow="Cooperative workspace"
+          title={coopName}
+          description={getCoopLocation(coop)}
+          badges={
+            isVerified ? <StatusChip label="Verified cooperative" tone="success" /> : undefined
+          }
+          actions={
+            <>
+              <button onClick={openNewProduct} className={primaryButtonClass} type="button">
+                <Icon name="plus" />
+                Add product
+              </button>
+              {coopId && (
+                <a href={`/coops/${coopId}`} className={secondaryButtonClass}>
+                  <Icon name="store" />
+                  View storefront
+                </a>
+              )}
+            </>
+          }
+        />
+      </DashboardContainer>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <button onClick={openNewProduct} className={primaryButtonClass} type="button">
-                  <Icon name="plus" />
-                  Add Product
-                </button>
-                {coopId && (
-                  <a href={`/coops/${coopId}`} className={secondaryButtonClass}>
-                    <Icon name="store" />
-                    View Storefront
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-        </DashboardContainer>
-      </div>
-
-      <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <section className="mb-6 grid gap-4 xl:grid-cols-4">
-          <DashboardStatCard label="Active Listings" value={activeProducts} detail={`${products.length} total product${products.length === 1 ? "" : "s"}`} />
-          <DashboardStatCard label="Open Orders" value={pendingOrders + confirmedOrders} detail={`${pendingOrders} pending, ${confirmedOrders} confirmed`} />
-          <DashboardStatCard label="Units in Stock" value={totalStock} detail="Available across all listings" />
-          <DashboardStatCard label="Average Rating" value={avgRating ? avgRating.toFixed(1) : "N/A"} detail={`${reviews.length} review${reviews.length === 1 ? "" : "s"}`} />
+      <main className="mx-auto max-w-[1440px] px-4 pb-8 sm:px-6 lg:px-8">
+        <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <DashboardStatCard label="Active Listings" value={activeProducts} detail={`${products.length} total product${products.length === 1 ? "" : "s"}`} accent="brand" />
+          <DashboardStatCard label="Open Orders" value={pendingOrders + confirmedOrders} detail={`${pendingOrders} pending, ${confirmedOrders} confirmed`} accent="warning" />
+          <DashboardStatCard label="Units in Stock" value={totalStock} detail="Available across all listings" accent="success" />
+          <DashboardStatCard label="Average Rating" value={avgRating ? avgRating.toFixed(1) : "N/A"} detail={`${reviews.length} review${reviews.length === 1 ? "" : "s"}`} accent="neutral" />
         </section>
 
         <section className="mb-6 grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
@@ -1181,17 +1141,14 @@ export default function CoopDashboard() {
             {loadingProducts ? (
               <LoadingRows />
             ) : products.length === 0 ? (
-              <EmptyState
+              <DashboardEmptyState
                 title="No products listed"
                 description="Add your first product with price, stock, materials, origin, and images so shoppers can buy from your cooperative."
+                icon={<Icon name="empty" className="h-6 w-6" />}
                 action={
-                  <button
-                    onClick={openNewProduct}
-                    className={primaryButtonClass}
-                    type="button"
-                  >
+                  <button onClick={openNewProduct} className={primaryButtonClass} type="button">
                     <Icon name="plus" />
-                    Add Product
+                    Add product
                   </button>
                 }
               />
@@ -1318,7 +1275,7 @@ export default function CoopDashboard() {
             {loadingOrders ? (
               <LoadingRows />
             ) : orders.length === 0 ? (
-              <EmptyState
+              <DashboardEmptyState
                 title="No incoming orders yet"
                 description="Orders from tourists will appear here with customer details, item counts, totals, and fulfillment actions."
                 action={<button onClick={() => setActiveTab("products")} className={secondaryButtonClass} type="button">Review products</button>}
@@ -1345,7 +1302,7 @@ export default function CoopDashboard() {
                 ))}
               </div>
             ) : reviews.length === 0 ? (
-              <EmptyState
+              <DashboardEmptyState
                 title="No customer reviews yet"
                 description="Reviews from product buyers will appear here with ratings, comments, dates, and product context."
               />
@@ -1534,8 +1491,8 @@ export default function CoopDashboard() {
         />
       )}
 
-      <footer className="border-t border-[#e4d8cc] bg-[#fbf8f3] px-4 py-5 text-center text-xs font-medium text-[#8c7b6f] sm:px-6">
-        © The Souk • Marketplace Dashboard
+      <footer className="border-t border-[#eadfd5] px-4 py-5 text-center text-xs text-[#8c7b6f]">
+        © {new Date().getFullYear()} The Souk · Cooperative workspace
       </footer>
     </DashboardShell>
   );

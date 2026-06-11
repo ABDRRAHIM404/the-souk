@@ -4,7 +4,6 @@ import { AuthProvider } from "@/context/AuthProvider";
 import { useAuth } from "@/hooks/useAuth";
 import type { ReactNode } from "react";
 
-
 import HomePage          from "@/pages/HomePage";
 import LoginPage         from "@/pages/LoginPage";
 import SignupPage        from "@/pages/SignupPage";
@@ -20,10 +19,15 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   if (isLoading) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-          <div style={{ width: 40, height: 40, borderRadius: "50%", border: "4px solid #E76F51", borderTopColor: "transparent", animation: "spin 0.8s linear infinite" }} />
-          <p style={{ color: "#9a8a7a", fontSize: 14 }}>Loading…</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#FFFCF8]">
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="h-10 w-10 rounded-full border-4 border-[#E76F51] border-t-transparent"
+            style={{ animation: "spin 0.8s linear infinite" }}
+            role="status"
+            aria-label="Loading"
+          />
+          <p className="text-sm text-[#8c7b6f]">Loading…</p>
         </div>
       </div>
     );
@@ -68,7 +72,7 @@ function AppRoutes() {
 
       <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
       <Route path="/dashboard/tourist" element={<ProtectedRoute><TouristDashboard /></ProtectedRoute>} />
-      <Route path="/dashboard/coop"    element={<CoopRoute><CoopDashboard /></CoopRoute>} />
+      <Route path="/dashboard/coop" element={<CoopRoute><CoopDashboard /></CoopRoute>} />
       <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />

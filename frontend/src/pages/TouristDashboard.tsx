@@ -10,11 +10,15 @@ import FadeSection from "@/components/FadeSection";
 import {
   DashboardCard,
   DashboardContainer,
+  DashboardEmptyState,
   DashboardMobileTabs,
+  DashboardPageHeader,
   DashboardShell,
   DashboardSidebar,
   DashboardStatCard,
+  DashboardTopBar,
 } from "@/components/DashboardShell";
+import StatusChip from "@/components/ui/StatusChip";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -103,21 +107,6 @@ function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
   );
 }
 
-function StatusChip({ label, tone }: { label: string; tone: "success" | "warning" | "danger" | "neutral" }) {
-  const tones = {
-    success: "border-[#b9dfd8] bg-[#edf8f6] text-[#19786d]",
-    warning: "border-[#ead9a2] bg-[#fff8e5] text-[#8b6417]",
-    danger: "border-[#f1c5bc] bg-[#fff0ed] text-[#b4442e]",
-    neutral: "border-[#e8ddd3] bg-[#faf6f2] text-[#6b5a4e]",
-  };
-
-  return (
-    <span className={`inline-flex h-6 shrink-0 items-center rounded-full border px-2.5 text-xs font-semibold ${tones[tone]}`}>
-      {label}
-    </span>
-  );
-}
-
 function Field({
   label,
   error,
@@ -135,29 +124,6 @@ function Field({
       {hint && <p className="mb-1.5 text-xs text-[#9a8a7a]">{hint}</p>}
       {children}
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
-    </div>
-  );
-}
-
-function EmptyState({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className={`${panelClass} flex min-h-62.5 flex-col items-center justify-center px-6 py-10 text-center`}>
-      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-[#eadfd5] bg-[#faf6f2] text-[#7b6a5e]">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M4 7h16M6 7v12h12V7M9 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-      <h3 className="text-base font-bold text-[#1a1008]">{title}</h3>
-      <p className="mt-2 max-w-md text-sm leading-6 text-[#7b6a5e]">{description}</p>
-      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 }
@@ -456,31 +422,32 @@ export default function TouristDashboard() {
 
   return (
     <DashboardShell>
+      <DashboardTopBar role="tourist" />
 
-      <div className="border-b border-[#eadfd5] bg-[#fbf7f2]">
-        <DashboardContainer>
-          <div className="rounded-[2rem] border border-[#e9ded2] bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0 space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c7b6f]">Welcome back</p>
-                <h1 className="text-3xl font-semibold tracking-tight text-[#1a1008] sm:text-4xl">Welcome back, {user?.name ?? "traveller"}</h1>
-                <p className="max-w-2xl text-sm leading-7 text-[#6b5a4e]">Manage your orders, saved products and reviews in one premium account center.</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Link to="/marketplace" className={primaryButtonClass}>Explore marketplace</Link>
-                <button type="button" onClick={() => setActiveTab("settings")} className={secondaryButtonClass}>Edit profile</button>
-              </div>
-            </div>
-          </div>
-        </DashboardContainer>
-      </div>
+      <DashboardContainer className="!pb-4 !pt-5">
+        <DashboardPageHeader
+          eyebrow="Your account"
+          title={`Welcome back, ${user?.name ?? "traveller"}`}
+          description="Manage your orders, saved products, and reviews in one place."
+          actions={
+            <>
+              <Link to="/marketplace" className={primaryButtonClass}>
+                Explore marketplace
+              </Link>
+              <button type="button" onClick={() => setActiveTab("settings")} className={secondaryButtonClass}>
+                Edit profile
+              </button>
+            </>
+          }
+        />
+      </DashboardContainer>
 
-      <main className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+      <main className="mx-auto max-w-[1440px] px-4 pb-8 sm:px-6 lg:px-8">
         <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <DashboardStatCard label="Orders" value={orders.length} detail={orders.length ? "Most recent order at the top" : "No purchases yet"} />
-          <DashboardStatCard label="Saved Products" value={wishlist.length} detail={wishlist.length ? "Saved for later" : "Pick favourites in the marketplace"} />
-          <DashboardStatCard label="Reviews" value={myReviews.length} detail={myReviews.length ? "Shared with the community" : "Your feedback helps others"} />
-          <DashboardStatCard label="Active Deliveries" value={pendingOrders} detail="Waiting on cooperative confirmation or delivery" />
+          <DashboardStatCard label="Orders" value={orders.length} detail={orders.length ? "Most recent order at the top" : "No purchases yet"} accent="brand" />
+          <DashboardStatCard label="Saved Products" value={wishlist.length} detail={wishlist.length ? "Saved for later" : "Pick favourites in the marketplace"} accent="success" />
+          <DashboardStatCard label="Reviews" value={myReviews.length} detail={myReviews.length ? "Shared with the community" : "Your feedback helps others"} accent="warning" />
+          <DashboardStatCard label="Active Deliveries" value={pendingOrders} detail="Waiting on cooperative confirmation or delivery" accent="neutral" />
         </section>
 
         <section className="mb-6 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
@@ -597,7 +564,7 @@ export default function TouristDashboard() {
             {loadingWishlist ? (
               <LoadingCards variant="grid" />
             ) : wishlist.length === 0 ? (
-              <EmptyState
+              <DashboardEmptyState
                 title="Your wishlist is empty"
                 description="Save products from the marketplace to compare them later and return when you are ready to order."
                 action={<Link to="/marketplace" className={primaryButtonClass}>Explore marketplace</Link>}
@@ -623,7 +590,7 @@ export default function TouristDashboard() {
             {loadingOrders ? (
               <LoadingCards variant="list" />
             ) : orders.length === 0 ? (
-              <EmptyState
+              <DashboardEmptyState
                 title="No orders yet"
                 description="When you place an order, status updates and purchase details will appear here."
                 action={<Link to="/marketplace" className={primaryButtonClass}>Start shopping</Link>}
@@ -649,7 +616,7 @@ export default function TouristDashboard() {
             {loadingReviews ? (
               <LoadingCards variant="list" />
             ) : myReviews.length === 0 ? (
-              <EmptyState
+              <DashboardEmptyState
                 title="No reviews yet"
                 description="After you discover a product, share a review to help other travellers buy with confidence."
                 action={<Link to="/marketplace" className={primaryButtonClass}>Browse products</Link>}
