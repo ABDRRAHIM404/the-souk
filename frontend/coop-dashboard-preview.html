@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>arganlux · Dashboard — The Souk</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink:      #1A1209;
+    --sand:     #F5EFE4;
+    --mist:     #EDE8DF;
+    --gold:     #C8922A;
+    --gold-lt:  #F0DFB8;
+    --clay:     #8B4A2B;
+    --green:    #2D6A4F;
+    --green-lt: #D4EDE3;
+    --amber:    #B45309;
+    --amber-lt: #FEF3C7;
+    --red-lt:   #FEE2E2;
+    --red:      #991B1B;
+    --sidebar-w: 220px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--sand);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    height: 52px;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topnav-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+  .logo-mark {
+    width: 28px;
+    height: 28px;
+    background: var(--gold);
+    display: grid;
+    place-items: center;
+    border-radius: 4px;
+  }
+  .logo-mark svg { width: 16px; height: 16px; }
+  .logo-name {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--sand);
+    letter-spacing: 0.04em;
+  }
+  .topnav-spacer { flex: 1; }
+  .topnav-browse {
+    font-size: 13px;
+    color: #9E8F7A;
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    transition: color .15s;
+  }
+  .topnav-browse:hover { color: var(--sand); }
+  .topnav-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .topnav-user-info { text-align: right; }
+  .topnav-user-name { font-size: 13px; color: var(--sand); font-weight: 500; }
+  .topnav-user-role { font-size: 11px; color: #9E8F7A; }
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: grid;
+    place-items: center;
+    font-family: 'Fraunces', serif;
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .topnav-logout {
+    font-size: 12px;
+    color: #9E8F7A;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: color .15s;
+  }
+  .topnav-logout:hover { color: var(--sand); }
+
+  /* ── SHELL ── */
+  .shell {
+    display: flex;
+    flex: 1;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: #120D06;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 0 24px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 52px;
+    height: calc(100vh - 52px);
+    overflow-y: auto;
+  }
+  .coop-identity {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid #2A1E10;
+  }
+  .coop-label {
+    font-size: 9px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #6B5840;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .coop-name {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--sand);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .coop-location {
+    font-size: 11px;
+    color: #6B5840;
+    margin-top: 3px;
+  }
+
+  /* Amazigh divider — the signature element */
+  .amazigh-divider {
+    width: calc(100% - 40px);
+    margin: 0 20px 20px;
+    height: 12px;
+    overflow: visible;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .nav-section-label {
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #4A3820;
+    padding: 12px 8px 4px;
+    font-weight: 600;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .15s;
+    color: #9E8F7A;
+    font-size: 13.5px;
+    font-weight: 500;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .nav-item:hover { background: #1E1409; color: var(--sand); }
+  .nav-item.active { background: #2A1A08; color: var(--gold); }
+  .nav-item .badge {
+    margin-left: auto;
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+  }
+  .nav-icon { width: 15px; height: 15px; opacity: .7; flex-shrink: 0; }
+  .nav-item.active .nav-icon { opacity: 1; }
+
+  .sidebar-actions {
+    padding: 16px 12px 0;
+    border-top: 1px solid #2A1E10;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: background .15s;
+    text-decoration: none;
+    justify-content: center;
+  }
+  .btn-primary:hover { background: #D4A030; }
+  .btn-ghost {
+    background: none;
+    color: #9E8F7A;
+    border: 1px solid #2A1E10;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: all .15s;
+    justify-content: center;
+  }
+  .btn-ghost:hover { border-color: #6B5840; color: var(--sand); }
+
+  /* ── MAIN ── */
+  .main {
+    flex: 1;
+    padding: 32px 36px;
+    overflow-y: auto;
+    max-width: 900px;
+  }
+
+  .page-header {
+    margin-bottom: 28px;
+  }
+  .page-eyebrow {
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .page-title {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  /* ── STAT CARDS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 18px 20px;
+    border: 1px solid var(--mist);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .stat-card.gold::before  { background: var(--gold); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.clay::before  { background: var(--clay); }
+  .stat-card.ink::before   { background: var(--ink); }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #9E8F7A;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  .stat-sub {
+    font-size: 12px;
+    color: #9E8F7A;
+    margin-top: 5px;
+  }
+  .stat-sub strong { color: var(--ink); font-weight: 600; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 32px; }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .section-link {
+    font-size: 12px;
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .section-link:hover { text-decoration: underline; }
+
+  /* ── ORDER LIST ── */
+  .order-list {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--mist);
+    overflow: hidden;
+  }
+  .order-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--mist);
+    transition: background .1s;
+  }
+  .order-row:last-child { border-bottom: none; }
+  .order-row:hover { background: #FDFAF6; }
+  .order-id {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    font-family: 'Inter', monospace;
+  }
+  .order-meta {
+    font-size: 12px;
+    color: #9E8F7A;
+    margin-top: 2px;
+  }
+  .order-product {
+    font-size: 12px;
+    color: #6B5840;
+    margin-top: 1px;
+    font-style: italic;
+  }
+  .order-amount {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-confirmed { background: var(--amber-lt); color: var(--amber); }
+  .badge-delivered { background: var(--green-lt); color: var(--green); }
+  .badge-pending   { background: var(--mist);     color: #6B5840; }
+  .badge-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .btn-action {
+    background: var(--ink);
+    color: var(--sand);
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+    white-space: nowrap;
+  }
+  .btn-action:hover { background: #2D2010; }
+
+  /* Action-needed indicator */
+  .order-row.needs-action .order-id::after {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--amber);
+    border-radius: 50%;
+    margin-left: 7px;
+    vertical-align: middle;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .4; }
+  }
+
+  /* ── PRODUCT TABLE ── */
+  .product-table {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--mist);
+    overflow: hidden;
+  }
+  .table-head {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr 1fr auto;
+    padding: 10px 20px;
+    background: var(--mist);
+    gap: 12px;
+  }
+  .th {
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #9E8F7A;
+    font-weight: 600;
+  }
+  .product-row {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr 1fr auto;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--mist);
+    gap: 12px;
+    transition: background .1s;
+  }
+  .product-row:last-child { border-bottom: none; }
+  .product-row:hover { background: #FDFAF6; }
+  .product-thumb {
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    background: var(--mist);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .product-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .product-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .product-cat {
+    font-size: 11px;
+    color: #9E8F7A;
+    margin-top: 1px;
+  }
+  .td { font-size: 13px; color: var(--ink); }
+  .td-muted { font-size: 13px; color: #9E8F7A; }
+  .badge-active   { background: var(--green-lt); color: var(--green); }
+  .table-actions {
+    display: flex;
+    gap: 6px;
+  }
+  .btn-icon {
+    width: 28px; height: 28px;
+    border-radius: 5px;
+    border: 1px solid var(--mist);
+    background: white;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all .15s;
+    color: #9E8F7A;
+  }
+  .btn-icon:hover { border-color: var(--ink); color: var(--ink); }
+  .btn-icon.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── STOCK HEALTH ── */
+  .health-banner {
+    background: var(--green-lt);
+    border: 1px solid #A7D3BC;
+    border-radius: 10px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--green);
+    font-weight: 500;
+  }
+  .health-icon {
+    width: 20px; height: 20px; flex-shrink: 0;
+  }
+
+  /* ── ALERT BANNER ── */
+  .alert-banner {
+    background: var(--amber-lt);
+    border: 1px solid #FCD34D;
+    border-radius: 10px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .alert-text { font-size: 13px; color: var(--amber); font-weight: 500; }
+  .alert-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--amber);
+    text-decoration: underline;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* ── REVIEWS EMPTY ── */
+  .empty-state {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--mist);
+    padding: 48px 24px;
+    text-align: center;
+  }
+  .empty-diamond {
+    margin: 0 auto 16px;
+    width: 48px; height: 48px;
+    opacity: .25;
+  }
+  .empty-title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .empty-sub { font-size: 13px; color: #9E8F7A; max-width: 280px; margin: 0 auto 20px; }
+  .btn-outline {
+    background: none;
+    border: 1.5px solid var(--ink);
+    color: var(--ink);
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-outline:hover { background: var(--ink); color: var(--sand); }
+
+  /* ── SETTINGS ── */
+  .settings-block {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--mist);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .settings-block-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--mist);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .settings-block-title {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .settings-block-sub {
+    font-size: 12px;
+    color: #9E8F7A;
+    margin-top: 2px;
+  }
+  .settings-body { padding: 20px; }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  .field label { font-size: 12px; font-weight: 600; color: #6B5840; }
+  .field input, .field textarea {
+    border: 1.5px solid var(--mist);
+    border-radius: 7px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    background: var(--sand);
+    outline: none;
+    transition: border-color .15s;
+    resize: vertical;
+  }
+  .field input:focus, .field textarea:focus {
+    border-color: var(--gold);
+    background: white;
+  }
+  .field textarea { min-height: 80px; }
+  .field-hint { font-size: 11px; color: #9E8F7A; margin-top: -2px; }
+  .settings-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--mist);
+    display: flex;
+    justify-content: flex-end;
+  }
+  .btn-save {
+    background: var(--ink);
+    color: var(--sand);
+    border: none;
+    border-radius: 7px;
+    padding: 9px 22px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-save:hover { background: #2D2010; }
+
+  /* Tab active state shimmer on page load */
+  .main { animation: fadein .3s ease; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .main { padding: 24px 20px; }
+  }
+  @media (max-width: 640px) {
+    .sidebar { display: none; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .table-head, .product-row { grid-template-columns: 1fr auto auto; }
+    .th:nth-child(2), .td:nth-child(2) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <a href="#" class="topnav-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16" fill="none">
+        <path d="M8 1L15 8L8 15L1 8Z" fill="#1A1209"/>
+        <path d="M8 4L12 8L8 12L4 8Z" fill="#C8922A" opacity=".6"/>
+      </svg>
+    </div>
+    <span class="logo-name">The Souk</span>
+  </a>
+  <div class="topnav-spacer"></div>
+  <a href="#" class="topnav-browse">Browse marketplace</a>
+  <div class="topnav-user">
+    <div class="topnav-user-info">
+      <div class="topnav-user-name">abderrahim</div>
+      <div class="topnav-user-role">Cooperative owner</div>
+    </div>
+    <div class="avatar">A</div>
+    <button class="topnav-logout">Log out</button>
+  </div>
+</nav>
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="coop-identity">
+    <div class="coop-label">Cooperative workspace</div>
+    <div class="coop-name">arganlux</div>
+    <div class="coop-location">belfaa · Souss-Massa, Morocco</div>
+  </div>
+
+  <!-- Amazigh tifinagh-inspired divider — the signature element -->
+  <svg class="amazigh-divider" viewBox="0 0 180 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0" y1="6" x2="60" y2="6" stroke="#2A1E10" stroke-width="1"/>
+    <rect x="72" y="2" width="8" height="8" transform="rotate(45 76 6)" fill="none" stroke="#C8922A" stroke-width="1.2"/>
+    <line x1="68" y1="6" x2="72" y2="6" stroke="#2A1E10" stroke-width="1"/>
+    <line x1="80" y1="6" x2="84" y2="6" stroke="#2A1E10" stroke-width="1"/>
+    <line x1="96" y1="2" x2="96" y2="10" stroke="#6B5840" stroke-width="1"/>
+    <line x1="84" y1="6" x2="96" y2="6" stroke="#2A1E10" stroke-width="1"/>
+    <line x1="96" y1="6" x2="108" y2="6" stroke="#2A1E10" stroke-width="1"/>
+    <rect x="108" y="2" width="8" height="8" transform="rotate(45 112 6)" fill="none" stroke="#C8922A" stroke-width="1.2"/>
+    <line x1="116" y1="6" x2="120" y2="6" stroke="#2A1E10" stroke-width="1"/>
+    <line x1="120" y1="6" x2="180" y2="6" stroke="#2A1E10" stroke-width="1"/>
+  </svg>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Workspace</div>
+    <a href="#overview" class="nav-item active" onclick="showTab('overview',this)">
+      <svg class="nav-icon" viewBox="0 0 15 15" fill="currentColor"><path d="M2 2h4v4H2V2zm7 0h4v4H9V2zm-7 7h4v4H2V9zm7 0h4v4H9V9z"/></svg>
+      Overview
+    </a>
+    <a href="#products" class="nav-item" onclick="showTab('products',this)">
+      <svg class="nav-icon" viewBox="0 0 15 15" fill="currentColor"><path d="M7.5 1L1 4.5v6L7.5 14l6.5-3.5v-6L7.5 1zm0 1.8L12 5.5v5l-4.5 2.4L3 10.5v-5L7.5 2.8z"/></svg>
+      Products
+      <span class="badge">1</span>
+    </a>
+    <a href="#orders" class="nav-item" onclick="showTab('orders',this)">
+      <svg class="nav-icon" viewBox="0 0 15 15" fill="currentColor"><path d="M2 2h11v2H2V2zm0 4h11v2H2V6zm0 4h7v2H2v-2z"/></svg>
+      Orders
+      <span class="badge">1</span>
+    </a>
+    <a href="#reviews" class="nav-item" onclick="showTab('reviews',this)">
+      <svg class="nav-icon" viewBox="0 0 15 15" fill="currentColor"><path d="M7.5 1l1.8 3.6L13 5.3l-3 2.9.7 4.1-3.7-1.9-3.7 2 .7-4.1-3-2.9 3.7-.7z"/></svg>
+      Reviews
+    </a>
+    <a href="#settings" class="nav-item" onclick="showTab('settings',this)">
+      <svg class="nav-icon" viewBox="0 0 15 15" fill="currentColor"><path d="M7.5 5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm-4.4 1.5L1 7.5l2.1 1 .3 1-1.5 1.7 1.4 1.4 1.7-1.5 1 .3 1 2.1 2-.1-.1-2.3 1-.3 1.7 1.5 1.4-1.4-1.5-1.7.3-1 2.1-1-.1-2-2.3-.1-1-.3 1.5-1.7-1.4-1.4-1.7 1.5-1-.3-1-2.1z"/></svg>
+      Settings
+    </a>
+  </nav>
+
+  <div class="sidebar-actions">
+    <a href="#" class="btn-primary">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><path d="M6.5 1v11M1 6.5h11"/></svg>
+      Add product
+    </a>
+    <a href="#" class="btn-ghost">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M1 6a5 5 0 1010 0A5 5 0 001 6zm4.5-2.5l3 2.5-3 2.5V3.5z"/></svg>
+      View storefront
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main" id="main-content">
+
+  <!-- OVERVIEW TAB -->
+  <div id="tab-overview">
+    <div class="page-header">
+      <div class="page-eyebrow">Dashboard</div>
+      <div class="page-title">Good evening, abderrahim</div>
+    </div>
+
+    <!-- Action-needed banner -->
+    <div class="alert-banner">
+      <div>
+        <div class="alert-text">⚑ Order #88F373 has been confirmed for 3 days — ready to ship?</div>
+      </div>
+      <span class="alert-link">Mark as delivered →</span>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="stats-grid">
+      <div class="stat-card gold">
+        <div class="stat-label">Active listings</div>
+        <div class="stat-value">1</div>
+        <div class="stat-sub">1 total product</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Open orders</div>
+        <div class="stat-value">1</div>
+        <div class="stat-sub"><strong>1 confirmed</strong> · 0 pending</div>
+      </div>
+      <div class="stat-card clay">
+        <div class="stat-label">Units in stock</div>
+        <div class="stat-value">10</div>
+        <div class="stat-sub">across 1 product</div>
+      </div>
+      <div class="stat-card ink">
+        <div class="stat-label">Avg. rating</div>
+        <div class="stat-value" style="font-size:22px;padding-top:6px;color:#9E8F7A;font-style:italic;">not yet rated</div>
+        <div class="stat-sub">Share your storefront to get reviews</div>
+      </div>
+    </div>
+
+    <!-- Recent orders -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Recent orders</div>
+        <a href="#orders" class="section-link" onclick="showTab('orders',null)">View all →</a>
+      </div>
+      <div class="order-list">
+        <div class="order-row needs-action">
+          <div>
+            <div class="order-id">#88F373</div>
+            <div class="order-meta">Fatima Ez-zahra · 8 Jun 2026</div>
+            <div class="order-product">tagla imazighn — single item</div>
+          </div>
+          <div class="order-amount">MAD 120.00</div>
+          <div><span class="badge badge-confirmed"><span class="badge-dot"></span>Confirmed</span></div>
+          <button class="btn-action">Confirm delivery</button>
+        </div>
+        <div class="order-row">
+          <div>
+            <div class="order-id">#0E565B</div>
+            <div class="order-meta">abderrahim bounga · 30 May 2026</div>
+            <div class="order-product">tagla imazighn — single item</div>
+          </div>
+          <div class="order-amount">MAD 120.00</div>
+          <div><span class="badge badge-delivered"><span class="badge-dot"></span>Delivered</span></div>
+          <span style="font-size:12px;color:#9E8F7A;">No actions</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock health -->
+    <div class="section">
+      <div class="section-title" style="margin-bottom:12px;">Inventory health</div>
+      <div class="health-banner">
+        <svg class="health-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        All listings have healthy stock levels — no action needed.
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS TAB -->
+  <div id="tab-products" style="display:none;">
+    <div class="page-header">
+      <div class="page-eyebrow">Workspace</div>
+      <div class="page-title">Product listings</div>
+    </div>
+    <div class="product-table">
+      <div class="table-head">
+        <div class="th">Product</div>
+        <div class="th">Category</div>
+        <div class="th">Price</div>
+        <div class="th">Stock</div>
+        <div class="th">Actions</div>
+      </div>
+      <div class="product-row">
+        <div class="product-cell">
+          <div class="product-thumb">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M10 2L18 10L10 18L2 10Z" fill="#C8922A" opacity=".3"/>
+              <path d="M10 5L15 10L10 15L5 10Z" fill="#C8922A" opacity=".6"/>
+            </svg>
+          </div>
+          <div>
+            <div class="product-name">tagla imazighn</div>
+            <div class="product-cat">souss massa · Updated 8 Jun</div>
+          </div>
+        </div>
+        <div class="td-muted">Food</div>
+        <div class="td" style="font-weight:600;">MAD 120.00</div>
+        <div class="td"><span class="badge badge-active">Active · 10 units</span></div>
+        <div class="table-actions">
+          <button class="btn-icon" title="Edit">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><path d="M9.5 1.5l2 2-8 8H1.5v-2l8-8z"/></svg>
+          </button>
+          <button class="btn-icon danger" title="Delete">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><path d="M2 3h9M5 3V2h3v1M4 3v7h5V3H4z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDERS TAB -->
+  <div id="tab-orders" style="display:none;">
+    <div class="page-header">
+      <div class="page-eyebrow">Fulfillment</div>
+      <div class="page-title">Incoming orders</div>
+    </div>
+    <div class="order-list">
+      <div class="order-row needs-action">
+        <div>
+          <div class="order-id">#88F373</div>
+          <div class="order-meta">Fatima Ez-zahra · 8 Jun 2026</div>
+          <div class="order-product">tagla imazighn — single item</div>
+        </div>
+        <div class="order-amount">MAD 120.00</div>
+        <div><span class="badge badge-confirmed"><span class="badge-dot"></span>Confirmed</span></div>
+        <button class="btn-action">Confirm delivery</button>
+      </div>
+      <div class="order-row">
+        <div>
+          <div class="order-id">#0E565B</div>
+          <div class="order-meta">abderrahim bounga · 30 May 2026</div>
+          <div class="order-product">tagla imazighn — single item</div>
+        </div>
+        <div class="order-amount">MAD 120.00</div>
+        <div><span class="badge badge-delivered"><span class="badge-dot"></span>Delivered</span></div>
+        <span style="font-size:12px;color:#9E8F7A;">No actions</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS TAB -->
+  <div id="tab-reviews" style="display:none;">
+    <div class="page-header">
+      <div class="page-eyebrow">Reputation</div>
+      <div class="page-title">Customer reviews</div>
+    </div>
+    <div class="empty-state">
+      <svg class="empty-diamond" viewBox="0 0 48 48" fill="none">
+        <path d="M24 4L44 24L24 44L4 24Z" fill="#1A1209"/>
+        <path d="M24 12L36 24L24 36L12 24Z" fill="#C8922A"/>
+      </svg>
+      <div class="empty-title">No reviews yet</div>
+      <div class="empty-sub">Share your storefront with customers to start collecting reviews and build trust with new buyers.</div>
+      <button class="btn-outline">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><path d="M9 1l3 3-7 7-3-1 1-3 6-6zm0 2L4 8"/></svg>
+        Copy storefront link
+      </button>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div id="tab-settings" style="display:none;">
+    <div class="page-header">
+      <div class="page-eyebrow">Configuration</div>
+      <div class="page-title">Settings</div>
+    </div>
+
+    <!-- Cooperative profile -->
+    <div class="settings-block">
+      <div class="settings-block-header">
+        <div>
+          <div class="settings-block-title">Storefront profile</div>
+          <div class="settings-block-sub">How your cooperative appears to shoppers and tourists.</div>
+        </div>
+      </div>
+      <div class="settings-body">
+        <div class="field-grid">
+          <div class="field">
+            <label>Cooperative name</label>
+            <input type="text" value="arganlux" />
+          </div>
+          <div class="field">
+            <label>City</label>
+            <input type="text" value="belfaa" />
+          </div>
+          <div class="field full">
+            <label>Description</label>
+            <textarea>our cooperative makes various products</textarea>
+            <div class="field-hint">Tell shoppers what makes your cooperative special — your craft, your region, your story.</div>
+          </div>
+          <div class="field full">
+            <label>Impact statement</label>
+            <textarea>we help poor famillies get a happy living</textarea>
+            <div class="field-hint">How does your work support your community and artisans?</div>
+          </div>
+          <div class="field">
+            <label>Number of artisans</label>
+            <input type="number" value="12" />
+          </div>
+          <div class="field">
+            <label>Founded year</label>
+            <input type="number" value="2021" />
+          </div>
+        </div>
+      </div>
+      <div class="settings-footer">
+        <button class="btn-save">Update profile</button>
+      </div>
+    </div>
+
+    <!-- Account settings -->
+    <div class="settings-block">
+      <div class="settings-block-header">
+        <div>
+          <div class="settings-block-title">Account & security</div>
+          <div class="settings-block-sub">Keep your login details current and secure.</div>
+        </div>
+      </div>
+      <div class="settings-body">
+        <div class="field-grid">
+          <div class="field">
+            <label>Full name</label>
+            <input type="text" value="abderrahim" />
+          </div>
+          <div class="field">
+            <label>Email address</label>
+            <input type="email" value="abderrahimbounga@gmail.com" />
+          </div>
+          <div class="field">
+            <label>Current password</label>
+            <input type="password" placeholder="Enter current password" />
+          </div>
+          <div class="field">
+            <label>New password</label>
+            <input type="password" placeholder="Leave blank to keep current" />
+          </div>
+          <div class="field full">
+            <label>Confirm new password</label>
+            <input type="password" placeholder="Repeat new password" />
+          </div>
+        </div>
+      </div>
+      <div class="settings-footer">
+        <button class="btn-save">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+  function showTab(name, clickedEl) {
+    ['overview','products','orders','reviews','settings'].forEach(t => {
+      document.getElementById('tab-' + t).style.display = t === name ? '' : 'none';
+    });
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    if (clickedEl) clickedEl.classList.add('active');
+    else {
+      const match = document.querySelector(`.nav-item[href="#${name}"]`);
+      if (match) match.classList.add('active');
+    }
+    return false;
+  }
+</script>
+
+</body>
+</html>

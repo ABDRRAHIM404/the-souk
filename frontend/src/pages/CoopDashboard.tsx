@@ -7,14 +7,9 @@ import api from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
 import FadeSection from "@/components/FadeSection";
 import {
-  DashboardCard,
-  DashboardContainer,
   DashboardEmptyState,
   DashboardMobileTabs,
-  DashboardPageHeader,
   DashboardShell,
-  DashboardSidebar,
-  DashboardStatCard,
   DashboardTopBar,
 } from "@/components/DashboardShell";
 import StatusChip from "@/components/ui/StatusChip";
@@ -113,8 +108,8 @@ function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
 function Field({ label, error, children, hint }: { label: string; error?: string; children: React.ReactNode; hint?: string }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-semibold text-[#1a1008]">{label}</label>
-      {hint && <p className="text-xs text-[#9a8a7a] mb-1.5">{hint}</p>}
+      <label className="mb-1.5 block text-xs font-semibold text-[#6B5840]">{label}</label>
+      {hint && <p className="mb-1.5 text-[11px] text-[#9E8F7A]">{hint}</p>}
       {children}
       {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
     </div>
@@ -122,16 +117,22 @@ function Field({ label, error, children, hint }: { label: string; error?: string
 }
 
 const inputClass =
-  "w-full rounded-lg border border-[#e8ddd3] bg-white px-3.5 py-2.5 text-sm text-[#1a1008] placeholder:text-[#b7a99d] transition-all focus:border-[#2A9D8F] focus:outline-none focus:ring-2 focus:ring-[#2A9D8F]/20";
+  "w-full rounded-[7px] border-[1.5px] border-[#EDE8DF] bg-[#F5EFE4] px-3 py-2.5 text-[13.5px] text-[#1A1209] placeholder:text-[#9E8F7A] transition-all focus:border-[#C8922A] focus:bg-white focus:outline-none";
 
 const textareaClass =
-  "w-full resize-none rounded-lg border border-[#e8ddd3] bg-white px-3.5 py-2.5 text-sm text-[#1a1008] placeholder:text-[#b7a99d] transition-all focus:border-[#2A9D8F] focus:outline-none focus:ring-2 focus:ring-[#2A9D8F]/20";
+  "w-full resize-y rounded-[7px] border-[1.5px] border-[#EDE8DF] bg-[#F5EFE4] px-3 py-2.5 text-[13.5px] text-[#1A1209] placeholder:text-[#9E8F7A] transition-all focus:border-[#C8922A] focus:bg-white focus:outline-none min-h-[80px]";
 
-const panelClass = "rounded-xl border border-[#eadfd5] bg-white shadow-[0_1px_2px_rgba(26,16,8,0.04)]";
+const panelClass = "rounded-[10px] border border-[#EDE8DF] bg-white overflow-hidden";
 const primaryButtonClass =
-  "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#1a1008] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#332216] disabled:opacity-60";
+  "inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-[#1A1209] px-4 py-2.5 text-[13px] font-semibold text-[#F5EFE4] transition-colors hover:bg-[#2D2010] disabled:opacity-60";
 const secondaryButtonClass =
-  "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#e8ddd3] bg-white px-4 py-2.5 text-sm font-semibold text-[#5f5046] transition-colors hover:border-[#d8cbbf] hover:bg-[#faf6f2] hover:text-[#1a1008]";
+  "inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-[#EDE8DF] bg-white px-4 py-2.5 text-[13px] font-semibold text-[#6B5840] transition-colors hover:border-[#d8cbbf] hover:bg-[#faf6f2] hover:text-[#1A1209]";
+const goldButtonClass =
+  "inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-[#C8922A] px-3.5 py-2 text-[13px] font-semibold text-[#1A1209] transition-colors hover:bg-[#D4A030] disabled:opacity-60";
+const ghostSidebarButtonClass =
+  "inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#2A1E10] bg-transparent px-3.5 py-2 text-[13px] font-medium text-[#9E8F7A] transition-all hover:border-[#6B5840] hover:text-[#F5EFE4]";
+const outlineButtonClass =
+  "inline-flex items-center justify-center gap-1.5 rounded-md border-[1.5px] border-[#1A1209] bg-transparent px-4 py-2 text-[13px] font-semibold text-[#1A1209] transition-all hover:bg-[#1A1209] hover:text-[#F5EFE4]";
 
 function formatCategory(category: string) {
   return category.charAt(0).toUpperCase() + category.slice(1);
@@ -158,8 +159,91 @@ function getProductStatus(product: Product) {
 function getCoopLocation(coop: Cooperative | null) {
   const city = coop?.location?.city ?? coop?.city;
   const region = coop?.location?.region ?? coop?.region;
-  const place = [city, region].filter(Boolean).join(", ");
+  const place = [city, region].filter(Boolean).join(" · ");
   return place ? `${place}, Morocco` : "Set up your profile to help shoppers find your cooperative.";
+}
+
+function getGreeting(name: string) {
+  const hour = new Date().getHours();
+  const salutation = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  return `${salutation}, ${name.split(" ")[0]}`;
+}
+
+function isStaleConfirmedOrder(order: Order) {
+  if (order.status !== "confirmed") return false;
+  const reference = order.updatedAt ?? order.createdAt;
+  const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+  return Date.now() - new Date(reference).getTime() > twoDaysMs;
+}
+
+function getDaysSinceConfirmed(order: Order) {
+  const reference = order.updatedAt ?? order.createdAt;
+  return Math.floor((Date.now() - new Date(reference).getTime()) / (24 * 60 * 60 * 1000));
+}
+
+function CoopOrderBadge({ status }: { status: Order["status"] }) {
+  const label = status.charAt(0).toUpperCase() + status.slice(1);
+  const toneClass =
+    status === "confirmed"
+      ? "coop-order-badge-confirmed"
+      : status === "delivered"
+        ? "coop-order-badge-delivered"
+        : status === "pending"
+          ? "coop-order-badge-pending"
+          : "coop-order-badge-cancelled";
+
+  return (
+    <span className={`coop-order-badge ${toneClass}`}>
+      <span className="coop-order-badge-dot" />
+      {label}
+    </span>
+  );
+}
+
+function AmazighDivider() {
+  return (
+    <svg className="mx-5 mb-5 h-3 w-[calc(100%-40px)] overflow-visible" viewBox="0 0 180 12" fill="none" aria-hidden="true">
+      <line x1="0" y1="6" x2="60" y2="6" stroke="#2A1E10" strokeWidth="1" />
+      <rect x="72" y="2" width="8" height="8" transform="rotate(45 76 6)" fill="none" stroke="#C8922A" strokeWidth="1.2" />
+      <line x1="68" y1="6" x2="72" y2="6" stroke="#2A1E10" strokeWidth="1" />
+      <line x1="80" y1="6" x2="84" y2="6" stroke="#2A1E10" strokeWidth="1" />
+      <line x1="96" y1="2" x2="96" y2="10" stroke="#6B5840" strokeWidth="1" />
+      <line x1="84" y1="6" x2="96" y2="6" stroke="#2A1E10" strokeWidth="1" />
+      <line x1="96" y1="6" x2="108" y2="6" stroke="#2A1E10" strokeWidth="1" />
+      <rect x="108" y="2" width="8" height="8" transform="rotate(45 112 6)" fill="none" stroke="#C8922A" strokeWidth="1.2" />
+      <line x1="116" y1="6" x2="120" y2="6" stroke="#2A1E10" strokeWidth="1" />
+      <line x1="120" y1="6" x2="180" y2="6" stroke="#2A1E10" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function CoopPageHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <div className="mb-7">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#C8922A]">{eyebrow}</p>
+      <h1 className="font-display mt-1 text-[28px] font-medium tracking-[-0.02em] text-[#1A1209]">{title}</h1>
+    </div>
+  );
+}
+
+function CoopStatCard({
+  label,
+  value,
+  detail,
+  accent,
+}: {
+  label: string;
+  value: React.ReactNode;
+  detail: React.ReactNode;
+  accent: "gold" | "green" | "clay" | "ink";
+}) {
+  return (
+    <div className="coop-stat-card" data-accent={accent}>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#9E8F7A]">{label}</p>
+      <p className="font-display mt-2 text-[36px] font-light leading-none tracking-[-0.02em] text-[#1A1209]">{value}</p>
+      <p className="mt-1.5 text-xs text-[#9E8F7A]">{detail}</p>
+    </div>
+  );
 }
 
 function Icon({ name, className = "" }: { name: "plus" | "store" | "box" | "star" | "settings" | "review" | "empty" | "orders" | "trend"; className?: string }) {
@@ -622,13 +706,6 @@ function DeleteConfirmModal({ product, onConfirm, onCancel }: { product: Product
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-function getOrderTone(status: Order["status"]): "success" | "warning" | "danger" | "neutral" {
-  if (status === "delivered") return "success";
-  if (status === "cancelled") return "danger";
-  if (status === "confirmed") return "neutral";
-  return "warning";
-}
-
 function getOrderItemSummary(order: Order) {
   const firstItem = order.items[0];
   const firstProduct = typeof firstItem?.product === "object" ? firstItem.product : null;
@@ -676,15 +753,51 @@ function OrderActions({
 
   if (order.status === "confirmed") {
     return (
-      <div className="flex justify-end">
-        <button type="button" disabled={busy} onClick={() => onUpdate(order._id, "delivered")} className="rounded-lg bg-[#19786d] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[#15655c] disabled:opacity-50">
-          Mark Delivered
-        </button>
-      </div>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => onUpdate(order._id, "delivered")}
+        className="whitespace-nowrap rounded-md bg-[#1A1209] px-3 py-1.5 text-xs font-semibold text-[#F5EFE4] transition-colors hover:bg-[#2D2010] disabled:opacity-50"
+      >
+        Confirm delivery
+      </button>
     );
   }
 
-  return <span className="block text-right text-xs font-medium text-[#9a8a7a]">No actions</span>;
+  return <span className="text-xs text-[#9E8F7A]">No actions</span>;
+}
+
+function OrderRow({
+  order,
+  busy,
+  onUpdate,
+}: {
+  order: Order;
+  busy: boolean;
+  onUpdate: (id: string, status: "confirmed" | "delivered" | "cancelled") => void;
+}) {
+  const summary = getOrderItemSummary(order);
+  const tourist = getTourist(order);
+  const needsAction = isStaleConfirmedOrder(order);
+
+  return (
+    <div
+      className={`grid grid-cols-1 items-center gap-4 border-b border-[#EDE8DF] px-5 py-3.5 transition-colors last:border-b-0 hover:bg-[#FDFAF6] sm:grid-cols-[1fr_auto_auto_auto] ${needsAction ? "coop-needs-action" : ""}`}
+    >
+      <div className="min-w-0">
+        <p className="coop-order-id text-[13px] font-semibold text-[#1A1209]">#{order._id.slice(-6).toUpperCase()}</p>
+        <p className="mt-0.5 text-xs text-[#9E8F7A]">
+          {tourist.name} · {new Date(order.createdAt).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })}
+        </p>
+        <p className="mt-0.5 text-xs italic text-[#6B5840]">
+          {summary.title} — {summary.extra.toLowerCase()}
+        </p>
+      </div>
+      <span className="text-sm font-semibold text-[#1A1209]">{formatPrice(order.total)}</span>
+      <CoopOrderBadge status={order.status} />
+      <OrderActions order={order} busy={busy} onUpdate={onUpdate} />
+    </div>
+  );
 }
 
 function OrdersTable({
@@ -697,81 +810,23 @@ function OrdersTable({
   onUpdate: (id: string, status: "confirmed" | "delivered" | "cancelled") => void;
 }) {
   return (
-    <>
-      <div className={`${panelClass} hidden overflow-hidden lg:block`}>
-        <div className="grid grid-cols-[minmax(240px,1.4fr)_1fr_0.7fr_0.8fr_1fr] gap-5 border-b border-[#eadfd5] bg-[#fbf7f2] px-5 py-3 text-xs font-bold uppercase tracking-[0.08em] text-[#8c7b6f]">
-          <span>Order</span>
-          <span>Customer</span>
-          <span>Total</span>
-          <span>Status</span>
-          <span className="text-right">Next Step</span>
-        </div>
-        {orders.map((order, idx) => {
-          const summary = getOrderItemSummary(order);
-          const tourist = getTourist(order);
-          const busy = updatingOrderId === order._id;
-          return (
-            <div key={order._id} className={`grid grid-cols-[minmax(240px,1.4fr)_1fr_0.7fr_0.8fr_1fr] items-center gap-5 px-5 py-4 transition-colors hover:bg-[#faf6f2] ${idx < orders.length - 1 ? "border-b border-[#f1e8df]" : ""}`}>
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#faf6f2] text-[#b7a99d] ring-1 ring-[#f0e8e0]">
-                  {summary.image ? <img src={summary.image} alt={summary.title} className="h-full w-full object-cover" /> : <Icon name="orders" />}
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-[#1a1008]">#{order._id.slice(-6).toUpperCase()}</p>
-                  <p className="mt-0.5 truncate text-xs text-[#8c7b6f]">{summary.title} - {summary.extra}</p>
-                </div>
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-[#1a1008]">{tourist.name}</p>
-                <p className="truncate text-xs text-[#8c7b6f]">{tourist.country || tourist.email || "Customer details"}</p>
-              </div>
-              <span className="text-sm font-bold text-[#1a1008]">{formatPrice(order.total)}</span>
-              <StatusChip label={order.status.charAt(0).toUpperCase() + order.status.slice(1)} tone={getOrderTone(order.status)} />
-              <OrderActions order={order} busy={busy} onUpdate={onUpdate} />
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="space-y-3 lg:hidden">
-        {orders.map((order) => {
-          const summary = getOrderItemSummary(order);
-          const tourist = getTourist(order);
-          const busy = updatingOrderId === order._id;
-          return (
-            <article key={order._id} className={`${panelClass} p-4`}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-[#1a1008]">Order #{order._id.slice(-6).toUpperCase()}</p>
-                  <p className="mt-1 truncate text-xs text-[#8c7b6f]">{summary.title} - {summary.extra}</p>
-                </div>
-                <StatusChip label={order.status.charAt(0).toUpperCase() + order.status.slice(1)} tone={getOrderTone(order.status)} />
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                <div className="rounded-lg bg-[#fbf7f2] px-3 py-2">
-                  <p className="text-xs text-[#8c7b6f]">Customer</p>
-                  <p className="truncate font-semibold text-[#1a1008]">{tourist.name}</p>
-                </div>
-                <div className="rounded-lg bg-[#fbf7f2] px-3 py-2">
-                  <p className="text-xs text-[#8c7b6f]">Total</p>
-                  <p className="font-semibold text-[#1a1008]">{formatPrice(order.total)}</p>
-                </div>
-              </div>
-              <div className="mt-3">
-                <OrderActions order={order} busy={busy} onUpdate={onUpdate} />
-              </div>
-            </article>
-          );
-        })}
-      </div>
-    </>
+    <div className={panelClass}>
+      {orders.map((order) => (
+        <OrderRow
+          key={order._id}
+          order={order}
+          busy={updatingOrderId === order._id}
+          onUpdate={onUpdate}
+        />
+      ))}
+    </div>
   );
 }
 
 export default function CoopDashboard() {
   const { user, refreshAuth } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<"products" | "orders" | "reviews" | "settings">("products");
+  const [activeTab, setActiveTab] = useState<"overview" | "products" | "orders" | "reviews" | "settings">("overview");
 
   // Products
   const [products, setProducts] = useState<Product[]>([]);
@@ -1002,141 +1057,255 @@ export default function CoopDashboard() {
     setModalProduct("new");
   };
 
+  const staleConfirmedOrders = orders.filter(isStaleConfirmedOrder);
+  const firstStaleOrder = staleConfirmedOrders[0];
+
+  function copyStorefrontLink() {
+    if (!coopId) return;
+    const url = `${window.location.origin}/coops/${coopId}`;
+    void navigator.clipboard.writeText(url).then(
+      () => toast.success("Storefront link copied!"),
+      () => toast.error("Could not copy link"),
+    );
+  }
+
   const tabs = [
-    { id: "products" as const, label: "Products", description: "Inventory and listings", count: products.length, icon: <Icon name="box" /> },
-    { id: "orders" as const, label: "Orders", description: "Fulfillment queue", count: orders.length, icon: <Icon name="orders" /> },
-    { id: "reviews" as const, label: "Reviews", description: "Customer feedback", count: reviews.length, icon: <Icon name="review" /> },
-    { id: "settings" as const, label: "Settings", description: "Storefront and access", count: null, icon: <Icon name="settings" /> },
+    { id: "overview" as const, label: "Overview", description: "Dashboard summary", count: null },
+    { id: "products" as const, label: "Products", description: "Inventory and listings", count: products.length },
+    { id: "orders" as const, label: "Orders", description: "Fulfillment queue", count: orders.length },
+    { id: "reviews" as const, label: "Reviews", description: "Customer feedback", count: reviews.length },
+    { id: "settings" as const, label: "Settings", description: "Storefront and access", count: null },
   ];
   const coopName = coop?.name ?? user?.name ?? "Cooperative";
+  const coopLocation = getCoopLocation(coop);
   const isVerified = Boolean(coop?.verified || coop?.isCertified);
+
+  const navIcons: Record<typeof activeTab, React.ReactNode> = {
+    overview: (
+      <svg className="h-[15px] w-[15px] shrink-0 opacity-70" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
+        <path d="M2 2h4v4H2V2zm7 0h4v4H9V2zm-7 7h4v4H2V9zm7 0h4v4H9V9z" />
+      </svg>
+    ),
+    products: (
+      <svg className="h-[15px] w-[15px] shrink-0 opacity-70" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
+        <path d="M7.5 1L1 4.5v6L7.5 14l6.5-3.5v-6L7.5 1zm0 1.8L12 5.5v5l-4.5 2.4L3 10.5v-5L7.5 2.8z" />
+      </svg>
+    ),
+    orders: (
+      <svg className="h-[15px] w-[15px] shrink-0 opacity-70" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
+        <path d="M2 2h11v2H2V2zm0 4h11v2H2V6zm0 4h7v2H2v-2z" />
+      </svg>
+    ),
+    reviews: (
+      <svg className="h-[15px] w-[15px] shrink-0 opacity-70" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
+        <path d="M7.5 1l1.8 3.6L13 5.3l-3 2.9.7 4.1-3.7-1.9-3.7 2 .7-4.1-3-2.9 3.7-.7z" />
+      </svg>
+    ),
+    settings: (
+      <svg className="h-[15px] w-[15px] shrink-0 opacity-70" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
+        <path d="M7.5 5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm-4.4 1.5L1 7.5l2.1 1 .3 1-1.5 1.7 1.4 1.4 1.7-1.5 1 .3 1 2.1 2-.1-.1-2.3 1-.3 1.7 1.5 1.4-1.4-1.5-1.7.3-1 2.1-1-.1-2-2.3-.1-1-.3 1.5-1.7-1.4-1.4-1.7 1.5-1-.3-1-2.1z" />
+      </svg>
+    ),
+  };
 
   return (
     <DashboardShell>
-      <DashboardTopBar role="coop_owner" />
+      <div className="coop-dash flex min-h-screen flex-col">
+        <DashboardTopBar role="coop_owner" />
 
-      <DashboardContainer className="!pb-4 !pt-5">
-        <DashboardPageHeader
-          eyebrow="Cooperative workspace"
-          title={coopName}
-          description={getCoopLocation(coop)}
-          badges={
-            isVerified ? <StatusChip label="Verified cooperative" tone="success" /> : undefined
-          }
-          actions={
-            <>
-              <button onClick={openNewProduct} className={primaryButtonClass} type="button">
-                <Icon name="plus" />
+        <div className="flex flex-1">
+          <aside className="coop-sidebar">
+            <div className="border-b border-[#2A1E10] px-5 pb-6">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#6B5840]">Cooperative workspace</p>
+              <h2 className="font-display mt-1.5 text-[22px] font-medium leading-tight tracking-[-0.01em] text-[#F5EFE4]">{coopName}</h2>
+              <p className="mt-1 text-[11px] text-[#6B5840]">{coopLocation}</p>
+              {isVerified && (
+                <div className="mt-2">
+                  <StatusChip label="Verified cooperative" tone="success" />
+                </div>
+              )}
+            </div>
+
+            <AmazighDivider />
+
+            <nav className="flex flex-1 flex-col gap-0.5 px-3 py-2" aria-label="Workspace">
+              <p className="px-2 pb-1 pt-3 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#4A3820]">Workspace</p>
+              {tabs.map((tab) => {
+                const active = tab.id === activeTab;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13.5px] font-medium transition-colors ${
+                      active
+                        ? "bg-[#2A1A08] text-[#C8922A] [&_svg]:opacity-100"
+                        : "text-[#9E8F7A] hover:bg-[#1E1409] hover:text-[#F5EFE4]"
+                    }`}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    {navIcons[tab.id]}
+                    <span className="flex-1">{tab.label}</span>
+                    {tab.count !== null && tab.count > 0 && (
+                      <span className="ml-auto min-w-[18px] rounded-[10px] bg-[#C8922A] px-1.5 py-0.5 text-center text-[10px] font-bold text-[#1A1209]">
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="flex flex-col gap-2 border-t border-[#2A1E10] px-3 pt-4">
+              <button onClick={openNewProduct} className={`${goldButtonClass} w-full`} type="button">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor" aria-hidden="true">
+                  <path d="M6.5 1v11M1 6.5h11" />
+                </svg>
                 Add product
               </button>
               {coopId && (
-                <a href={`/coops/${coopId}`} className={secondaryButtonClass}>
-                  <Icon name="store" />
+                <a href={`/coops/${coopId}`} className={ghostSidebarButtonClass}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+                    <path d="M1 6a5 5 0 1010 0A5 5 0 001 6zm4.5-2.5l3 2.5-3 2.5V3.5z" />
+                  </svg>
                   View storefront
                 </a>
               )}
-            </>
-          }
-        />
-      </DashboardContainer>
-
-      <main className="mx-auto max-w-[1440px] px-4 pb-8 sm:px-6 lg:px-8">
-        <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <DashboardStatCard label="Active Listings" value={activeProducts} detail={`${products.length} total product${products.length === 1 ? "" : "s"}`} accent="brand" />
-          <DashboardStatCard label="Open Orders" value={pendingOrders + confirmedOrders} detail={`${pendingOrders} pending, ${confirmedOrders} confirmed`} accent="warning" />
-          <DashboardStatCard label="Units in Stock" value={totalStock} detail="Available across all listings" accent="success" />
-          <DashboardStatCard label="Average Rating" value={avgRating ? avgRating.toFixed(1) : "N/A"} detail={`${reviews.length} review${reviews.length === 1 ? "" : "s"}`} accent="neutral" />
-        </section>
-
-        <section className="mb-6 grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
-          <DashboardCard>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c7b6f]">Recent orders</p>
-                <h2 className="mt-2 text-xl font-semibold text-[#1a1008]">Order activity</h2>
-              </div>
-              <button type="button" onClick={() => setActiveTab("orders")} className="rounded-2xl border border-[#e9ded2] bg-white px-4 py-2 text-sm font-semibold text-[#1a1008] transition hover:border-[#d8cbbf] hover:bg-[#faf7f2]">
-                View all
-              </button>
             </div>
-            <div className="mt-5 space-y-3">
-              {orders.slice(0, 4).map((order) => {
-                const tourist = getTourist(order);
-                return (
-                  <div key={order._id} className="rounded-3xl border border-[#f0e8e0] bg-[#fcfaf7] p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[#1a1008]">Order #{order._id.slice(-6).toUpperCase()}</p>
-                        <p className="mt-1 text-xs text-[#7b6a5e]">{tourist.name} · {new Date(order.createdAt).toLocaleDateString("en-GB", { month: "short", day: "numeric" })}</p>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <StatusChip label={order.status.charAt(0).toUpperCase() + order.status.slice(1)} tone={getOrderTone(order.status)} />
-                        <span className="text-sm font-semibold text-[#1a1008]">{formatPrice(order.total)}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              {orders.length === 0 && <p className="text-sm text-[#7b6a5e]">Incoming purchases will appear here as soon as tourists place orders.</p>}
-            </div>
-          </DashboardCard>
+          </aside>
 
-          <DashboardCard>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c7b6f]">Inventory health</p>
-                <h2 className="mt-2 text-xl font-semibold text-[#1a1008]">Stock alerts</h2>
-              </div>
-              <StatusChip label={`${lowStockProducts} warnings`} tone={lowStockProducts ? "warning" : "success"} />
-            </div>
-            <div className="mt-5 space-y-3">
-              {products
-                .filter((product) => product.stock <= 5 || product.isAvailable === false)
-                .slice(0, 4)
-                .map((product) => {
-                  const status = getProductStatus(product);
-                  return (
-                    <button key={product._id} type="button" onClick={() => setModalProduct(product)} className="flex w-full items-center justify-between gap-4 rounded-3xl border border-[#f0e8e0] bg-[#fcfaf7] p-4 text-left transition hover:bg-[#faf6f2]">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-[#1a1008]">{product.name}</p>
-                        <p className="mt-1 text-xs text-[#7b6a5e]">{product.stock ?? 0} units available</p>
-                      </div>
-                      <StatusChip label={status.label} tone={status.tone} />
-                    </button>
-                  );
-                })}
-              {products.length === 0 ? (
-                <p className="text-sm text-[#7b6a5e]">Add products to monitor stock levels and listing status.</p>
-              ) : lowStockProducts === 0 ? (
-                <p className="text-sm text-[#7b6a5e]">All active listings have healthy stock levels.</p>
-              ) : null}
-            </div>
-          </DashboardCard>
-        </section>
-
-        <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-          <DashboardSidebar items={tabs} activeItem={activeTab} onSelect={setActiveTab} label="Manage" />
-
-          <div className="min-w-0 lg:col-start-2">
+          <main className="max-w-[900px] flex-1 overflow-y-auto px-5 py-8 sm:px-9">
             <DashboardMobileTabs items={tabs} activeItem={activeTab} onSelect={setActiveTab} />
 
-        {/* ── Products Tab ──────────────────────────────────────────────────── */}
+            {activeTab === "overview" && (
+              <FadeSection>
+                <CoopPageHeader
+                  eyebrow="Dashboard"
+                  title={user?.name ? getGreeting(user.name) : "Welcome back"}
+                />
+
+                {firstStaleOrder && (
+                  <div className="mb-5 flex flex-col gap-3 rounded-[10px] border border-[#FCD34D] bg-[#FEF3C7] px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-[13px] font-medium text-[#B45309]">
+                      Order #{firstStaleOrder._id.slice(-6).toUpperCase()} has been confirmed for {getDaysSinceConfirmed(firstStaleOrder)} days — ready to ship?
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab("orders");
+                        void handleOrderStatus(firstStaleOrder._id, "delivered");
+                      }}
+                      className="whitespace-nowrap text-xs font-semibold text-[#B45309] underline"
+                    >
+                      Confirm delivery →
+                    </button>
+                  </div>
+                )}
+
+                <section className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <CoopStatCard
+                    label="Active listings"
+                    value={activeProducts}
+                    detail={`${products.length} total product${products.length === 1 ? "" : "s"}`}
+                    accent="gold"
+                  />
+                  <CoopStatCard
+                    label="Open orders"
+                    value={pendingOrders + confirmedOrders}
+                    detail={
+                      <>
+                        <strong className="font-semibold text-[#1A1209]">{confirmedOrders} confirmed</strong>
+                        {" · "}
+                        {pendingOrders} pending
+                      </>
+                    }
+                    accent="green"
+                  />
+                  <CoopStatCard
+                    label="Units in stock"
+                    value={totalStock}
+                    detail={`across ${products.length} product${products.length === 1 ? "" : "s"}`}
+                    accent="clay"
+                  />
+                  <CoopStatCard
+                    label="Avg. rating"
+                    value={
+                      avgRating ? (
+                        avgRating.toFixed(1)
+                      ) : (
+                        <span className="font-display text-[22px] font-light italic text-[#9E8F7A]">not yet rated</span>
+                      )
+                    }
+                    detail={reviews.length ? `${reviews.length} review${reviews.length === 1 ? "" : "s"}` : "Share your storefront to get reviews"}
+                    accent="ink"
+                  />
+                </section>
+
+                <section className="mb-8">
+                  <div className="mb-3.5 flex items-baseline justify-between">
+                    <h2 className="font-display text-[17px] font-medium tracking-[-0.01em] text-[#1A1209]">Recent orders</h2>
+                    <button type="button" onClick={() => setActiveTab("orders")} className="text-xs font-medium text-[#C8922A] hover:underline">
+                      View all →
+                    </button>
+                  </div>
+                  {orders.length === 0 ? (
+                    <p className="text-sm text-[#9E8F7A]">Incoming purchases will appear here as soon as tourists place orders.</p>
+                  ) : (
+                    <div className={panelClass}>
+                      {orders.slice(0, 4).map((order) => (
+                        <OrderRow
+                          key={order._id}
+                          order={order}
+                          busy={updatingOrderId === order._id}
+                          onUpdate={handleOrderStatus}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+                <section>
+                  <h2 className="font-display mb-3 text-[17px] font-medium tracking-[-0.01em] text-[#1A1209]">Inventory health</h2>
+                  {products.length === 0 ? (
+                    <p className="text-sm text-[#9E8F7A]">Add products to monitor stock levels and listing status.</p>
+                  ) : lowStockProducts === 0 ? (
+                    <div className="flex items-center gap-3 rounded-[10px] border border-[#A7D3BC] bg-[#D4EDE3] px-5 py-3.5 text-[13px] font-medium text-[#2D6A4F]">
+                      <svg className="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      All listings have healthy stock levels — no action needed.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {products
+                        .filter((product) => product.stock <= 5 || product.isAvailable === false)
+                        .slice(0, 4)
+                        .map((product) => {
+                          const status = getProductStatus(product);
+                          return (
+                            <button
+                              key={product._id}
+                              type="button"
+                              onClick={() => setModalProduct(product)}
+                              className="flex w-full items-center justify-between gap-4 rounded-[10px] border border-[#EDE8DF] bg-white px-5 py-3.5 text-left transition hover:bg-[#FDFAF6]"
+                            >
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-[#1A1209]">{product.name}</p>
+                                <p className="mt-0.5 text-xs text-[#9E8F7A]">{product.stock ?? 0} units available</p>
+                              </div>
+                              <StatusChip label={status.label} tone={status.tone} />
+                            </button>
+                          );
+                        })}
+                    </div>
+                  )}
+                </section>
+              </FadeSection>
+            )}
+
         {activeTab === "products" && (
           <FadeSection>
-            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-[#1a1008]">Product Listings</h2>
-                <p className="mt-1 text-sm text-[#7b6a5e]">Manage inventory, pricing, and product quality.</p>
-              </div>
-              <button
-                onClick={openNewProduct}
-                className={primaryButtonClass}
-                type="button"
-              >
-                <Icon name="plus" />
-                Add Product
-              </button>
-            </div>
+            <CoopPageHeader eyebrow="Workspace" title="Product listings" />
 
             {loadingProducts ? (
               <LoadingRows />
@@ -1251,26 +1420,9 @@ export default function CoopDashboard() {
           </FadeSection>
         )}
 
-        {/* ── Reviews Tab ──────────────────────────────────────────────────── */}
         {activeTab === "orders" && (
           <FadeSection>
-            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Fulfillment</p>
-                <h2 className="mt-1 text-xl font-bold text-[#1a1008]">Incoming orders</h2>
-                <p className="mt-1 text-sm text-[#7b6a5e]">Confirm new purchases, mark fulfilled orders as delivered, and monitor customer demand.</p>
-              </div>
-              <div className="grid grid-cols-2 gap-2 sm:min-w-[260px]">
-                <div className="rounded-lg bg-white px-3 py-2 shadow-[0_1px_2px_rgba(26,16,8,0.04)] ring-1 ring-[#eadfd5]/80">
-                  <p className="text-xs text-[#8c7b6f]">Pending</p>
-                  <p className="text-lg font-bold text-[#1a1008]">{pendingOrders}</p>
-                </div>
-                <div className="rounded-lg bg-white px-3 py-2 shadow-[0_1px_2px_rgba(26,16,8,0.04)] ring-1 ring-[#eadfd5]/80">
-                  <p className="text-xs text-[#8c7b6f]">Confirmed</p>
-                  <p className="text-lg font-bold text-[#1a1008]">{confirmedOrders}</p>
-                </div>
-              </div>
-            </div>
+            <CoopPageHeader eyebrow="Fulfillment" title="Incoming orders" />
 
             {loadingOrders ? (
               <LoadingRows />
@@ -1290,11 +1442,7 @@ export default function CoopDashboard() {
 
         {activeTab === "reviews" && (
           <FadeSection>
-            <div className="mb-4">
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Feedback</p>
-              <h2 className="mt-1 text-xl font-bold text-[#1a1008]">Customer reviews</h2>
-              <p className="mt-1 text-sm text-[#7b6a5e]">Monitor product sentiment and shopper confidence.</p>
-            </div>
+            <CoopPageHeader eyebrow="Reputation" title="Customer reviews" />
             {loadingReviews ? (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -1302,10 +1450,22 @@ export default function CoopDashboard() {
                 ))}
               </div>
             ) : reviews.length === 0 ? (
-              <DashboardEmptyState
-                title="No customer reviews yet"
-                description="Reviews from product buyers will appear here with ratings, comments, dates, and product context."
-              />
+              <div className={`${panelClass} px-6 py-12 text-center`}>
+                <svg className="mx-auto mb-4 h-12 w-12 opacity-25" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                  <path d="M24 4L44 24L24 44L4 24Z" fill="#1A1209" />
+                  <path d="M24 12L36 24L24 36L12 24Z" fill="#C8922A" />
+                </svg>
+                <h3 className="font-display text-lg text-[#1A1209]">No reviews yet</h3>
+                <p className="mx-auto mt-1.5 max-w-[280px] text-[13px] text-[#9E8F7A]">
+                  Share your storefront with customers to start collecting reviews and build trust with new buyers.
+                </p>
+                <button type="button" onClick={copyStorefrontLink} className={`${outlineButtonClass} mt-5`}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor" aria-hidden="true">
+                    <path d="M9 1l3 3-7 7-3-1 1-3 6-6zm0 2L4 8" />
+                  </svg>
+                  Copy storefront link
+                </button>
+              </div>
             ) : (
               <div>
                 {/* Summary */}
@@ -1365,19 +1525,17 @@ export default function CoopDashboard() {
           </FadeSection>
         )}
 
-        {/* ── Settings Tab ─────────────────────────────────────────────────── */}
         {activeTab === "settings" && (
           <FadeSection>
-            <div className="grid gap-6 pb-12 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
-              {/* Cooperative profile */}
-              <div>
-                <div className="mb-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Storefront</p>
-                  <h2 className="mt-1 text-xl font-bold text-[#1a1008]">Cooperative profile</h2>
-                  <p className="mt-1 text-sm text-[#7b6a5e]">These details shape how shoppers evaluate your cooperative.</p>
-                </div>
-                <form onSubmit={coopForm.handleSubmit(onCoopSettingsSubmit)} className={`${panelClass} overflow-hidden`}>
-                  <div className="space-y-4 p-5 sm:p-6">
+            <CoopPageHeader eyebrow="Configuration" title="Settings" />
+
+            <div className="space-y-5 pb-12">
+                <form onSubmit={coopForm.handleSubmit(onCoopSettingsSubmit)} className={panelClass}>
+                  <div className="border-b border-[#EDE8DF] px-5 py-4">
+                    <h2 className="font-display text-[15px] font-medium text-[#1A1209]">Storefront profile</h2>
+                    <p className="mt-0.5 text-xs text-[#9E8F7A]">How your cooperative appears to shoppers and tourists.</p>
+                  </div>
+                  <div className="space-y-4 p-5">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field label="Cooperative name" error={coopForm.formState.errors.cooperativeName?.message}>
                         <input {...coopForm.register("cooperativeName")} className={inputClass} placeholder="e.g. Coopérative Tiziri" />
@@ -1388,11 +1546,11 @@ export default function CoopDashboard() {
                       </Field>
                     </div>
 
-                    <Field label="Description">
+                    <Field label="Description" hint="Tell shoppers what makes your cooperative special — your craft, your region, your story.">
                       <textarea {...coopForm.register("description")} rows={4} className={textareaClass} placeholder="Tell visitors about your cooperative…" />
                     </Field>
 
-                    <Field label="Impact statement" hint="How does the cooperative support its artisans?">
+                    <Field label="Impact statement" hint="How does your work support your community and artisans?">
                       <textarea {...coopForm.register("impactStatement")} rows={2} className={textareaClass} placeholder="We invest 20% of profits in education…" />
                     </Field>
 
@@ -1406,7 +1564,7 @@ export default function CoopDashboard() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end border-t border-[#eadfd5] bg-[#fbf7f2] px-5 py-3 sm:px-6">
+                  <div className="flex justify-end border-t border-[#EDE8DF] px-5 py-3.5">
                     <button
                       type="submit"
                       disabled={coopForm.formState.isSubmitting}
@@ -1418,17 +1576,13 @@ export default function CoopDashboard() {
                     </button>
                   </div>
                 </form>
-              </div>
 
-              {/* Account settings */}
-              <div>
-                <div className="mb-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8c7b6f]">Access</p>
-                  <h2 className="mt-1 text-xl font-bold text-[#1a1008]">Account settings</h2>
-                  <p className="mt-1 text-sm text-[#7b6a5e]">Keep owner login details current and secure.</p>
-                </div>
-                <form onSubmit={accountForm.handleSubmit(onAccountSubmit)} className={`${panelClass} overflow-hidden`}>
-                  <div className="space-y-4 p-5 sm:p-6">
+                <form onSubmit={accountForm.handleSubmit(onAccountSubmit)} className={panelClass}>
+                  <div className="border-b border-[#EDE8DF] px-5 py-4">
+                    <h2 className="font-display text-[15px] font-medium text-[#1A1209]">Account & security</h2>
+                    <p className="mt-0.5 text-xs text-[#9E8F7A]">Keep your login details current and secure.</p>
+                  </div>
+                  <div className="space-y-4 p-5">
                     <Field label="Full name" error={accountForm.formState.errors.name?.message}>
                       <input {...accountForm.register("name")} className={inputClass} placeholder="Your name" />
                     </Field>
@@ -1453,7 +1607,7 @@ export default function CoopDashboard() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end border-t border-[#eadfd5] bg-[#fbf7f2] px-5 py-3 sm:px-6">
+                  <div className="flex justify-end border-t border-[#EDE8DF] px-5 py-3.5">
                     <button
                       type="submit"
                       disabled={accountForm.formState.isSubmitting}
@@ -1465,13 +1619,12 @@ export default function CoopDashboard() {
                     </button>
                   </div>
                 </form>
-              </div>
             </div>
           </FadeSection>
         )}
-          </div>
+          </main>
         </div>
-      </main>
+      </div>
 
       {/* ── Modals ─────────────────────────────────────────────────────────── */}
       {modalProduct !== null && (
@@ -1491,7 +1644,7 @@ export default function CoopDashboard() {
         />
       )}
 
-      <footer className="border-t border-[#eadfd5] px-4 py-5 text-center text-xs text-[#8c7b6f]">
+      <footer className="border-t border-[#EDE8DF] bg-[#F5EFE4] px-4 py-5 text-center text-xs text-[#9E8F7A]">
         © {new Date().getFullYear()} The Souk · Cooperative workspace
       </footer>
     </DashboardShell>

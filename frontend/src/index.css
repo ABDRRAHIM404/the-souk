@@ -1229,3 +1229,108 @@ button:disabled {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ds-color-muted);
 }
+
+/* ─── Coop dashboard (preview design) ─────────────────────────────────── */
+
+.coop-dash {
+  --coop-ink: #1A1209;
+  --coop-sand: #F5EFE4;
+  --coop-mist: #EDE8DF;
+  --coop-gold: #C8922A;
+  --coop-clay: #8B4A2B;
+  --coop-green: #2D6A4F;
+  --coop-green-lt: #D4EDE3;
+  --coop-amber: #B45309;
+  --coop-amber-lt: #FEF3C7;
+  --coop-sidebar: #120D06;
+  font-family: "Inter", system-ui, sans-serif;
+  color: var(--coop-ink);
+  background: var(--coop-sand);
+}
+
+.coop-dash .font-display {
+  font-family: "Fraunces", Georgia, serif;
+}
+
+.coop-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--coop-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 0 24px;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+
+.coop-stat-card {
+  position: relative;
+  overflow: hidden;
+  background: white;
+  border-radius: 10px;
+  padding: 18px 20px;
+  border: 1px solid var(--coop-mist);
+}
+
+.coop-stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.coop-stat-card[data-accent="gold"]::before { background: var(--coop-gold); }
+.coop-stat-card[data-accent="green"]::before { background: var(--coop-green); }
+.coop-stat-card[data-accent="clay"]::before { background: var(--coop-clay); }
+.coop-stat-card[data-accent="ink"]::before { background: var(--coop-ink); }
+
+.coop-order-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.coop-order-badge-confirmed { background: var(--coop-amber-lt); color: var(--coop-amber); }
+.coop-order-badge-delivered { background: var(--coop-green-lt); color: var(--coop-green); }
+.coop-order-badge-pending { background: var(--coop-mist); color: #6B5840; }
+.coop-order-badge-cancelled { background: #FEE2E2; color: #991B1B; }
+
+.coop-order-badge-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+@keyframes coop-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.coop-needs-action .coop-order-id::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--coop-amber);
+  border-radius: 50%;
+  margin-left: 7px;
+  vertical-align: middle;
+  animation: coop-pulse 2s ease-in-out infinite;
+}
+
+@media (max-width: 1023px) {
+  .coop-sidebar {
+    display: none;
+  }
+}
